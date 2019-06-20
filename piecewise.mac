@@ -1,0 +1,396 @@
+/* Piecewise.mac
+
+Author: José A. Vallejo
+        Faculty of Sciences
+        Universidad Autonoma de San Luis Potosi (Mexico)
+        http://galia.fc.uaslp.mx/~jvallejo
+
+        Emmanuel Roque
+        Faculty of Sciences
+        Universidad Autonoma de San Luis Potosi (Mexico)
+
+
+
+*/
+
+/*The following rules are intented to work with intervals in "a canonical way"
+leq,geq,lss,grtr are for bounded intervals
+
+
+Note: Instead of using constantp inside of matchdeclare, numberp  could be used but this approach won't work if %pi is used,
+so probably is not an option since this is a Fourier package and %pi will appear most of the time.
+Another possible approach is to use freeof(var) instead of constantp
+*/
+matchdeclare(constn, constantp)$
+defrule(leq,constn>=xx,xx<=constn)$
+defrule(geq,xx>=constn,constn<=xx)$
+defrule(lss,constn>xx,xx<constn)$
+defrule(grtr,xx>constn,constn<xx)$
+
+/* pw2list(expr,var)
+Input: piecewise defined function written in one of the following ways
+
+if x>=a_0 and x<=a_1 then expr1 elseif x>a_1 and x<= a_2 then expr2 ... elseif x>a_n and x<=a_{n+1} then expr_{n+1}
+
+if x<=a_0 then expr0 elseif x>a0 and x<=a1 then expr1 ... elseif x>=a_n then exprn
+
+if x<=a_0 then expr0
+
+if x>=a_0 then expro0
+
+Output: A list [[a0,a1,expr1],[a1,a2,expr2,]...]
+
+Important notes:
+-In all cases it is expected that a_i<a_{i+1}
+Writing (x<=7 and x>=6) instead of (x>=6 and x<=7) does not work.
+-If in the function definition some of the intervals are empty (e.g x>=3 and x<=-3) returns error.
+-Use of else is currently unsupported, the expr after else is ignored! Use elseif instead.
+-functionality with logical operator "or" is currently unsupported, will be treated same as "and".
+-pw2list does not check if the intervals are disjoint!
+*/
+
+pw2list(expr,var):=block(
+    [subint,subval,tmp,ll,tmp1,tmp2,xx,ans,tmp3,tmpb,leftU,rightU],
+    if not piecewisep(expr) then error("The function is not piecewise defined") else (
+    xx:var,
+    ll:(length(expr)-2)/2,
+    tmp:makelist(inpart(expr,i),i,makelist(2*k-1,k,1,ll)),
+    subval:makelist(inpart(expr,i),i,makelist(2*k,k,1,ll)),
+    tmp1:makelist(operatorp(tmp[j],["<",">","<=",">="]),j,1,ll),
+    tmp2:sublist_indices(tmp1,lambda([x],x=true)),
+    /*if tmp2 is an empty list then all the intervals in the domain
+    of the function are bounded */
+    if emptyp(tmp2) then(
+        /*Get rid of logical operators*/
+        tmp:makelist(makelist(inpart(tmp[k],i),i,1,2),k,1,ll),
+        /*Use canonical ordering*/
+        tmp:apply1(tmp,leq,geq,lss,grtr),
+        /*Extract subintervals*/
+        subint:makelist(makelist(inpart(tmp[i][j],j),j,1,2),i,1,ll),
+        /*Check for ill defined subintervals*/
+        tmp3:map(lambda([L],lfreeof(L,var)),subint),
+        if not emptyp(sublist_indices(tmp3,lambda([x],x=false))) then
+        error("Check function definition, some interval(s) appear to be empty or ill-defined. Read documentation for further details.")
+        else (ans:makelist([subint[k],subval[k]],k,1,ll),
+              return(ans) )
+        )
+    /*Function is not bounded*/
+    else(
+/* Check for something like [[[0,inf],-x]]*/
+    if is(ll=1) then (
+            tmp:apply1(tmp,leq,geq,lss,grtr),
+            if freeof(var,inpart(tmp[1],1)) then return([[[inpart(tmp[1],1),inf],subval[1]]])
+            else return([[[minf,inpart(tmp[1],2)],subval[1]]])
+            )
+        else (if is(ll=2) then(
+                tmp:apply1(tmp,leq,geq,lss,grtr),
+                leftU:[[minf,inpart(tmp[1],2)],subval[1]],
+                rightU:[[inpart(tmp[2],1),inf],subval[2]],
+                ans:[leftU,rightU],
+                return(ans)
+                )
+        elseif is(ll>2) then(
+        leftU:apply1(tmp[1],leq,geq,lss,grtr),
+        rightU:apply1(tmp[ll],leq,geq,lss,grtr),
+        leftU:[[minf,inpart(leftU,2)],subval[1]],
+        rightU:[[inpart(rightU,1),inf],subval[ll]],
+        /*Get rid of logical operators in the bounded intervals*/
+            tmpb:makelist(makelist(inpart(tmp[k],i),i,1,2),k,2,ll-1),
+        /*Use canonical ordering*/
+            tmpb:apply1(tmpb,leq,geq,lss,grtr),
+        /*Extract bounded subintervals*/
+            subint:makelist(makelist(inpart(tmpb[i][j],j),j,1,2),i,1,ll-2),
+        /*Check for ill-defined subintervals*/
+            tmp3:map(lambda([L],lfreeof(L,var)),subint),
+            if not emptyp(sublist_indices(tmp3,lambda([x],x=false))) then
+            error("Check function definition, some interval(s) appear to be empty or ill-defined. Read documentation for further details.")
+            else ( ans:append([leftU],makelist([subint[k],subval[k+1]],k,1,ll-2),[rightU]),
+                    return(ans))
+            )
+
+        )
+    )
+))$
+
+/*bint_comp(L1,L2,var)
+Bounded intervals comparison
+Input: Two lists, L1 and L2, each one having the following format
+[[a_i,b_i],expr_i]
+Output: A flag used by parityL
+*/
+
+bint_comp(L1,L2,var):=block(
+    if is(L1[1][1]=-L2[1][2]) and is(L1[1][2]=-L2[1][1]) then(
+        if is(L1[2]=0) and is(L2[2]=0) then return('zero)
+        elseif equalp(L1[2],ratsubst(-var,var,L2[2])) then return('even)
+        elseif equalp(L1[2],-ratsubst(-var,var,L2[2])) then return('odd) else return('none)
+    )
+    else return('none)
+)$
+/* uint_comp(L1,L2,var)
+Unbounded intervals comparison
+Input: Two list, L1 and L2, corresponding to unbounded intervals in
+the following format
+[[minf,b_1],expr1] or [[a_2,inf],expr2]
+Output: A flag used by parityL
+It is assumed that parity check has already checked if a_1,b_2 are equal to minf,inf respectively.
+*/
+uint_comp(L1,L2,var):=block(
+    if is(L1[1][2]=-L2[1][1]) then(
+        if is(L1[2]=0) and is(L2[2]=0) then return('zero)
+        elseif equalp(L1[2],ratsubst(-var,var,L2[2])) then return('even)
+        elseif equalp(L1[2],-ratsubst(-var,var,L2[2])) then return('odd) else return('none)
+    )
+    else return('none)
+)$
+
+/*The following three lines were taken from or are based on the code inside
+Maxima's share package calculus/fourie.mac which is released under GPLv2
+ */
+equalp(x,y):=block([prederror], prederror:false, if is(equal(x,y)) = true then true)$
+
+evenfunp(fun,var):=if equalp(fun,ratsubst(-var,var,fun)) then true$
+
+oddfunp(fun,var):=if equalp(fun,-ratsubst(-var,var,fun)) then true$
+
+
+/*parityb(L,var)
+Input: A list returned by pw2list of a bounded function
+Output: A list used by parityL
+*/
+parityb(L,var):=block(
+    [ll,icentral,aux,ans,llaux,Laux,paux],
+    ll:length(L),
+    /* Trivial case, just check if the only interval has
+    an even expression, an odd expression or neither of them.*/
+    if is(ll=1) and is(L[1][1][1]=-L[1][1][2]) then(
+        if evenfunp(L[1][2],var) then return('even)
+        elseif oddfunp(L[1][2],var) then return('odd)
+        else return('none)
+    )
+    elseif is(ll>1) then(
+    icentral:0,
+    /*Search if there is a central interval*/
+    for i:1 thru ll do (if is(L[i][1][1]*L[i][1][2]<0) then icentral:i),
+    /*Case 1: icentral=0 */
+    if is(icentral=0) then(
+        if not evenp(ll) then return('none) else(
+        aux:makelist(bint_comp(L[i],L[ll+1-i],var),i,1,ll/2),
+        if is(length(sublist_indices(aux,lambda([x],x=even or x=zero)))=ll/2)
+        then return('even)
+        elseif is(length(sublist_indices(aux,lambda([x],x=odd or x=zero)))=ll/2)
+        then return('odd)
+        else return('none)
+        )
+    )
+    /*icentral>0*/
+    elseif is(icentral>0) and oddp(ll) then(
+    /*Check parity of central element*/
+        if is(L[icentral][1][1]=-L[icentral][1][2]) then (
+        if evenfunp(L[icentral][2],var) then paux:'even
+        elseif oddfunp(L[icentral][2],var) then paux:'odd
+        else return('none),
+        Laux:delete(L[icentral],L),
+        aux:makelist(bint_comp(Laux[i],Laux[ll-i],var),i,1,(ll-1)/2),
+        if is(length(sublist_indices(aux,lambda([x],x=even or x=zero)))=(ll-1)/2) and is(paux=even)
+        then return('even)
+        elseif is(length(sublist_indices(aux,lambda([x],x=odd or x=zero)))=(ll-1)/2) and is(paux=odd)
+        then return('odd)
+        else return('none)
+        )
+    else return('none)
+    )
+    ))$
+
+
+
+/*parityL(L,var)
+
+Input: A list returned by pw2list
+Output: the parity of the function
+
+Important notes:
+-
+*/
+parityL(L,var):=block(
+    [aux1,aux2,Laux,ll],
+    ll:length(L),
+    if (not boundedp(L)) and is(ll=1) then return('none)
+    elseif (not boundedp(L)) and is(ll=2) then(
+        if is(uint_comp(L[1],L[2],var)=zero) or is(uint_comp(L[1],L[2],var)=even) then return('even)
+        elseif is(uint_comp(L[1],L[2],var)=odd) then
+        return('odd)
+        else return('none)
+        )
+    /*Check if there are unbounded intervals*/
+    elseif (not boundedp(L)) and is(ll>2) then(
+        aux1:uint_comp(L[1],L[ll],var),
+        Laux:delete(L[1],L),
+        Laux:delete(L[ll],Laux),
+        aux2:parityb(Laux,var),
+        if (is(aux1=zero) and is(aux2=even)) or
+        (is(aux1=even) and is(aux2=even)) then
+        return('even) elseif (is(aux1=zero) and is(aux2=odd)) or
+        (is(aux1=odd) and is(aux2=odd)) then return('odd)
+        else return('none)
+    )
+    else return(parityb(L,var))
+
+)$
+boundedp(L):=block(
+    [ll],
+    ll:length(L),
+    if is(L[1][1][1]=minf) and is (L[ll][1][2]=inf)
+    then return(false)
+    else return(true)
+)$
+
+/*Check if the domain is bounded and symmetric [-L,L]
+symbintp(L)
+intput: a list L returned by pw2list
+output: true or false
+*/
+
+symbintp(L):=if boundedp(L) and is(L[1][1][1]=-L[length(L)][1][2]) then L[length(L)][1][2] else false$
+
+/*Check if the domain is bounded and return the difference of the interval extremal points*/
+
+bounded_ext(L):=if boundedp(L) then second(first(last(L)))-first(first(first(L))) else false$
+
+oddextension_pwterm(L,var):=block(
+    [Laux],
+    Laux:[[-L[1][2],-L[1][1]],-ratsubst(-x,x,L[2])],
+    Laux
+)$
+
+oddextensionpw(L,var):=block(
+    [Lodd],
+    Lodd:append(reverse(map(lambda([e],oddextension_pwterm(e,var)),L)),L),
+    Lodd
+)$
+
+evenextension_pwterm(L,var):=block(
+    [Laux],
+    Laux:[[-L[1][2],-L[1][1]],ratsubst(-x,x,L[2])],
+    Laux
+)$
+
+evenextensionpw(L,var):=block(
+    [Lodd],
+    Lodd:append(reverse(map(lambda([e],evenextension_pwterm(e,var)),L)),L),
+    Lodd
+)$
+
+/*secsum2bl(L)
+Input: A list as in pw2list output format
+Output:
+*/
+secsum2bl(L):=block(
+    [ll,laux],
+    ll:length(L),
+    laux:makelist(i,i,1,ll),
+    create_list([L[i][1],y],i,laux,y,sum2list(L[i][2]))
+)$
+
+
+list2pw(Lf,foo,bar):=block([Lflength:length(Lf),st,aux],local(st),
+if is(equal(Lflength,1)) then
+    (aux:Lf[1][2],define(funmake(foo,[bar]),if (Lf[1][1][1]<=bar and bar<=Lf[1][1][2]) then aux))
+else (
+    aux:Lf[1][2],
+    st[1]:string(if (Lf[1][1][1]<=bar and bar<=Lf[1][1][2]) then aux),
+    for j:2 thru Lflength do (
+        aux:Lf[j][2],
+        st[j]:sconcat(" elseif ",string((Lf[j][1][1]<=bar and bar<=Lf[j][1][2]))," then ",string(aux))
+        ),
+    define(funmake(foo,[bar]),parse_string(apply('sconcat,makelist(st[k],k,1,Lflength))))
+    )
+)$
+
+list2pw_expr(Lf,bar):=block([Lflength:length(Lf),st,aux,ans],local(st),
+    if is(equal(Lflength,1)) then
+        (aux:Lf[1][2],ans:if (Lf[1][1][1]<=bar and bar<=Lf[1][1][2]) then aux, return(ans))
+    else (
+        aux:Lf[1][2],
+        st[1]:string(if (Lf[1][1][1]<=bar and bar<Lf[1][1][2]) then aux),
+        for j:2 thru Lflength do (
+            if is(j<Lflength) then (
+            aux:Lf[j][2],
+            st[j]:sconcat(" elseif ",string((Lf[j][1][1]<=bar and bar<Lf[j][1][2]))," then ",string(aux))
+            ) else(
+            aux:Lf[j][2],
+            st[j]:sconcat(" elseif ",string((Lf[j][1][1]<=bar and bar<=Lf[j][1][2]))," then ",string(aux)))
+            ),
+        ans:parse_string(apply('sconcat,makelist(st[k],k,1,Lflength)))
+        )
+    )$
+
+containlist(L1,L2):=block(if is(L2[1]<=L1[1] and L1[2]<=L2[2]) then return(true) else return (false))$
+
+pwsuml(Lf,Lg,bar):=block([aux1:map(lambda([zzz],first(zzz)),Lf),
+  aux2:map(lambda([zzz],first(zzz)),Lg),L1,L2,kk,tmp:[],tmq:[]],
+L1:unique(flatten(aux1)),
+L2:unique(flatten(aux2)),
+kk:sort(unique(append(L1,L2))),
+for i:1 thru length(kk)-1 do tmp:endcons([kk[i],kk[i+1]],tmp),
+for j:1 thru length(tmp) do (
+ sum1:first(sublist_indices(aux1,lambda([x],containlist(tmp[j],bar)))),
+ sum2:first(sublist_indices(aux2,lambda([x],containlist(tmp[j],bar)))),
+ tmq:endcons([tmp[j],Lf[sum1][2]+Lg[sum2][2]],tmq)
+    ),
+tmq
+)$
+
+pwdifferencel(Lf,Lg,bar):=block([aux1:map(lambda([zzz],first(zzz)),Lf),
+  aux2:map(lambda([zzz],first(zzz)),Lg),L1,L2,kk,tmp:[],tmq:[]],
+L1:unique(flatten(aux1)),
+L2:unique(flatten(aux2)),
+kk:sort(unique(append(L1,L2))),
+for i:1 thru length(kk)-1 do tmp:endcons([kk[i],kk[i+1]],tmp),
+for j:1 thru length(tmp) do (
+ sum1:first(sublist_indices(aux1,lambda([x],containlist(tmp[j],bar)))),
+ sum2:first(sublist_indices(aux2,lambda([x],containlist(tmp[j],bar)))),
+ tmq:endcons([tmp[j],Lf[sum1][2]-Lg[sum2][2]],tmq)
+    ),
+tmq
+)$
+
+pwprodl(Lf,Lg,bar):=block([aux1:map(lambda([zzz],first(zzz)),Lf),
+  aux2:map(lambda([zzz],first(zzz)),Lg),L1,L2,kk,tmp:[],tmq:[]],
+L1:unique(flatten(aux1)),
+L2:unique(flatten(aux2)),
+kk:sort(unique(append(L1,L2))),
+for i:1 thru length(kk)-1 do tmp:endcons([kk[i],kk[i+1]],tmp),
+for j:1 thru length(tmp) do (
+ sum1:first(sublist_indices(aux1,lambda([x],containlist(tmp[j],bar)))),
+ sum2:first(sublist_indices(aux2,lambda([x],containlist(tmp[j],bar)))),
+ tmq:endcons([tmp[j],Lf[sum1][2]*Lg[sum2][2]],tmq)
+    ),
+tmq
+)$
+
+
+pwdiffl(Lf,bar,n):=block(
+map(lambda([uuu],[first(uuu),diff(second(uuu),bar,n)]),Lf)
+)$
+
+/*pwintegrate(L,var)
+
+Integrate the list form of a piecewise defined function
+
+*/
+
+pwintegrate(Llist,var):=block(
+    [ll],
+    ll:length(Llist),
+    return(sum(integrate(Llist[i][2],var,Llist[i][1][1],Llist[i][1][2]),i,1,ll))
+)$
+
+pwglobalproductl(Lf,expr):=map(lambda([uuu],[first(uuu),expr*second(uuu)]),Lf)$
+
+pwglobalsuml(Lf,expr):=map(lambda([uuu],[first(uuu),expr+second(uuu)]),Lf)$
+
+listdiff(l1,l2):=block([tmp],
+tmp:sublist_indices(l1,lambda([x],not(member(x,l2)))),
+create_list(l1[j],j,tmp)
+)$

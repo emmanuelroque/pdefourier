@@ -1,0 +1,1107 @@
+/*
+pdefourier Maxima package
+
+Authors: Jose A. Vallejo
+        Faculty of Sciences
+	Universidad Autonoma de San Luis Potosi (Mexico)
+	http://galia.fc.uaslp.mx/~jvallejo
+
+        Emmanuel Roque
+        Faculty of Sciences
+        Universidad Autonoma de San Luis Potosi (Mexico)
+*/
+
+load(simplify_sum)$
+load(draw)$
+load(syntactic_factor)$
+load(piecewise)$
+/*load(abs_integrate)$*/
+
+piecewisep(expr):=if atom(expr) then false else is(inpart(expr,0)="if")$
+paritycheck(expr,var):=block(
+    if piecewisep(expr) then return(parityL(pw2list(expr,var),var))
+    elseif listp(expr) then return(parityL(expr,var))
+    else (
+    if evenfunp(expr,var) then return('even)
+    elseif oddfunp(expr,var) then return('odd)
+    else return('none)
+    )
+)$
+
+
+/* sum2list(expr)
+Auxiliary function
+Input: An expression
+Output: A list whose elements are the terms of expression
+
+Important notes: sum2list does not check by itself if op(expr)="+" or not*/
+
+sum2list(expr):= if is(expr=0) then [0] elseif is(nterms(expr)=1) then [expr] else args(expr)$
+
+
+/*Match rules for special cases*/
+matchdeclare(nexp,lambda([e],e#0 and nonnegintegerp(e)))$
+matchdeclare(nfreq,lambda([e],e#0 and nonnegintegerp(e)))$
+matchdeclare(const,lambda([e],e#0 and freeof(xargument,e)))$
+/*matchdeclare(argtrig,lambda([e],e#0 and constantp(e)))$
+defmatch(powx,const*xargument^nexp,xargument)$*/
+defmatch(powxsin,const*xargument^nexp*sin(nfreq*%pi*xargument/pargument),xargument,pargument)$
+defmatch(powxcos,const*xargument^nexp*cos(nfreq*%pi*xargument/pargument),xargument,pargument)$
+defmatch(multsin,const*sin(nfreq*%pi*xargument/pargument),xargument,pargument)$
+defmatch(multcos,const*cos(nfreq*%pi*xargument/pargument),xargument,pargument)$
+/*powxcos_int
+Computes \int_a^b (x^r*cos(freq*%pi*x/L)dx for r>=0
+*/
+powxcos_int(pow,freq,p,a,b):=block(
+    if is(freq=0) then (b^(pow+1)-a^(pow+1))/(pow+1)
+    elseif is(pow=0) then (p/(%pi*freq))*(sin(freq*%pi*b/p)-sin(freq*%pi*a/p))
+    elseif is(pow>0) then (p/(%pi*freq))*(b^pow*sin(freq*%pi*b/p)-a^pow*sin(freq*%pi*a/p))-(p*pow/(freq*%pi)*powxsin_int(pow-1,freq,p,a,b))
+)$
+/*powxsin_int
+Computes \int_a^b x^r*sin(freq*%pi*x/L) dx for r>=0 */
+powxsin_int(pow,freq,p,a,b):=block(
+    if is(freq=0) then 0
+    elseif is(pow=0) then (p/(%pi*freq))*(cos(freq*%pi*a/p)-cos(freq*%pi*b/p))
+    elseif is(pow>0) then (p/(%pi*freq))*(a^pow*cos(freq*%pi*a/p)-b^pow*cos(freq*%pi*b/p))+(p*pow/(freq*%pi)*powxcos_int(pow-1,freq,p,a,b))
+)$
+/*Heuristic a_n
+
+*/
+heuristic_an(expr,var,p,a,b):=block(
+    [n,ans],
+    declare(n,integer),
+    if listp(powxsin(expr,var,p)) then (
+    if is(a=-b) and evenp(nexp) then 0 else(
+        ans:(const/(2*p))*powxsin_int(nexp,nfreq+n,p,a,b)+ev((const/(2*p))*powxsin_int(nexp,nfreq-n,p,a,b),noeval,n),
+            remove(n,integer),
+            ans
+        )
+    )
+    elseif listp(powxcos(expr,var,p)) then (
+        if is(a=-b) and oddp(nexp) then 0 else(
+    ans:(const/(2*p))*powxcos_int(nexp,nfreq+n,p,a,b)+ev((const/(2*p))*powxcos_int(nexp,nfreq-n,p,a,b),noeval,n),
+            remove(n,integer),
+            ans)
+    )
+    elseif listp(multsin(expr,var,p)) then(
+        if is(a=-b) then 0 else(
+        ans:(const/(2*p))*powxsin_int(0,nfreq+n,p,a,b)+ev((const/(2*p))*powxsin_int(0,nfreq-n,p,a,b),noeval,n),
+        remove(n,integer),
+            ans
+        )
+    )
+    elseif listp(multcos(expr,var,p)) then (
+    ans:(const/(2*p))*powxcos_int(0,nfreq+n,p,a,b)+ev((const/(2*p))*powxcos_int(0,nfreq-n,p,a,b),noeval,n),
+        remove(n,integer),
+            ans
+    )
+    else(
+    ans:integrate(expr*cos(n*%pi*var/p),var,a,b)/p,
+        remove(n,integer),
+        ans
+    )
+)$
+/*Heuristic b_n
+
+*/
+heuristic_bn(expr,var,p,a,b):=block(
+    [n,ans],
+    declare(n,integer),
+    if listp(powxsin(expr,var,p)) then (
+    if is(a=-b) and oddp(nexp) then 0 else(
+        ans:(-const/(2*p))*powxcos_int(nexp,nfreq+n,p,a,b)+ev((const/(2*p))*powxcos_int(nexp,nfreq-n,p,a,b),noeval,n),
+            remove(n,integer),
+            ans
+        )
+    )
+    elseif listp(powxcos(expr,var,p)) then (
+        if is(a=-b) and evenp(nexp) then 0 else(
+    ans:(const/(2*p))*powxsin_int(nexp,nfreq+n,p,a,b)+ev((const/(2*p))*powxsin_int(nexp,n-nfreq,p,a,b),noeval,n),
+            remove(n,integer),
+            ans
+        )
+    )
+    elseif listp(multsin(expr,var,p)) then(
+        ans:(-const/(2*p))*powxcos_int(0,nfreq+n,p,a,b)+ev((const/(2*p))*powxcos_int(0,nfreq-n,p,a,b),noeval,n),
+        remove(n,integer),
+            ans
+    )
+    elseif listp(multcos(expr,var,p)) then (
+        if is(a=-b) then 0 else(
+    ans:(const/(2*p))*powxsin_int(0,nfreq+n,p,a,b)+ev((const/(2*p))*powxsin_int(0,n-nfreq,p,a,b),noeval,n),
+        remove(n,integer),
+            ans
+        )
+    )
+    else(
+    ans:integrate(expr*sin(n*%pi*var/p),var,a,b)/p,
+        remove(n,integer),
+        ans
+    )
+)$
+
+/*foucoeffpw(L,var)
+Fourier coefficients of a piecewise defined function
+Currently it only works with functions defined on an interval of the form [-p,p].
+The output is a list of the form [a0,a1,b1,an,bn]
+*/
+
+foucoeffpw(L,var):=block(
+    [llaux,ll,a0,an,bn,answ,lm],
+    ll:length(L),
+    lm:(L[ll][1][2]-L[1][1][1])/2, /*For more general intervals*/
+    Laux:secsum2bl(L),
+    llaux:length(Laux),
+    if is(parityL(L,var)=odd) then (
+    a0:0,  an:0,
+    bn:sum(heuristic_bn(Laux[i][2],var,lm,Laux[i][1][1],Laux[i][1][2]),i,1,llaux),
+    answ:[a0,an,simplify_sum(bn)],
+    return(ratsimp(answ)))
+    elseif is(parityL(L,var)=even) then (
+    a0:(1/(2*lm))*pwintegrate(L,var),
+    an:sum(heuristic_an(Laux[i][2],var,lm,Laux[i][1][1],Laux[i][1][2]),i,1,llaux),
+    bn:0,
+    answ:[simplify_sum(a0),simplify_sum(an),bn],
+    return(ratsimp(answ)))
+    else(
+    a0:(1/(2*lm))*pwintegrate(L,var),
+    an:sum(heuristic_an(Laux[i][2],var,lm,Laux[i][1][1],Laux[i][1][2]),i,1,llaux),
+    bn:sum(heuristic_bn(Laux[i][2],var,lm,Laux[i][1][1],Laux[i][1][2]),i,1,llaux),
+    answ:[a0,an,bn],
+    answ:map(simplify_sum,answ),
+    return(ratsimp(answ) ))
+)$
+
+foucoeffterm(term,var,p):=block(
+    [a0,bn,an,ans],
+    if listp(term) then(
+    if is(bounded_ext(term)=2*p) then
+    return(foucoeffpw(term,var))
+    else error("Domain of the piecewise function is not valid. Read the documentation for further details")
+    )
+    elseif piecewisep(term) then(
+    /*Check if the domain is valid*/
+    if is(bounded_ext(pw2list(term,var))=2*p) then
+    return(foucoeffpw(map(lambda([e],[e[1],expand(trigrat(e[2]))]),pw2list(term,var)),var))
+    else error("Domain of the piecewise function is not valid. Read the documentation for further details")
+    )
+    else(
+    /*Check parity of term*/
+    if is(paritycheck(term,var)=even) then(
+    a0:ratsimp((1/(2*p))*integrate(term,var,-p,p)),
+    an:heuristic_an(term,var,p,-p,p),
+    bn:0,
+    ans:ratsimp([a0,an,bn]),
+    return(ans)
+    )
+    elseif is(paritycheck(term,var)=odd) then(
+    a0:0, an:0,
+    bn:heuristic_bn(term,var,p,-p,p),
+    ans:ratsimp([a0,an,bn]),
+    return(ans)
+    )
+    else(
+    a0:ratsimp((1/(2*p))*integrate(term,var,-p,p)),
+    an:heuristic_an(term,var,p,-p,p),
+    bn:heuristic_bn(term,var,p,-p,p),
+    ans:ratsimp([a0,an,bn]),
+    return(ans)
+    )
+    )
+)$
+
+list2bl(L):=block(
+    [ll,laux],
+    ll:length(L),
+    laux:makelist(i,i,1,ll),
+    create_list(y,i,laux,y,sum2list(L[i]))
+)$
+
+trigpattern(term,var,p):=block(
+    if listp(powxsin(term,var,p)) then return(nfreq)
+    elseif listp(powxcos(term,var,p)) then return(nfreq)
+    elseif listp(multcos(term,var,p)) then return(nfreq)
+    elseif listp(multsin(term,var,p)) then return(nfreq)
+    else return(false)
+)$
+
+searchsv_term(term,var,p):=block(
+    [L,Laux,indx_aux,indx],
+    if listp(term) then(
+    L:secsum2bl(term),
+    indx_aux:map(lambda([e],trigpattern(e[2],var,p)),L),
+    indx:unique(sublist(indx_aux,integerp)),
+    return(indx)
+    )
+    elseif piecewisep(term) then(
+    Laux:map(lambda([e],[e[1],expand(trigrat(e[2]))]),pw2list(term,var)),
+    L:secsum2bl(Laux),
+    indx_aux:map(lambda([e],trigpattern(e[2],var,p)),L),
+    indx:unique(sublist(indx_aux,integerp)),
+    return(indx)
+    ) else(
+        indx_aux:trigpattern(term,var,p),
+        if integerp(indx_aux) then return([indx_aux])
+        else return([])
+        )
+)$
+
+searchsv(expr,var,p):=block(
+    [L,Laux,indx],
+    Laux:sum2list(expand(expr)),
+    Laux:map(lambda([e],if not piecewisep(e) then expand(trigrat(e)) else e),Laux),
+    L:list2bl(Laux),
+    indx:apply(append,map(lambda([e],searchsv_term(e,var,p)),L)),
+    return(unique(indx))
+    )$
+
+fouriercoeff(expr,var,p):=block(
+    [ans,Llist,Laux,coeffsv,sv,n],
+    Laux:sum2list(expand(expr)),
+    Llist:map(lambda([e],if not piecewisep(e) then expand(trigrat(e)) else e),Laux),
+    Llist:list2bl(Llist),
+    ans:lsum(y,y,map(lambda([e],foucoeffterm(e,var,p)),Llist)),
+    ans:ratsimp(ans),
+    sv:searchsv(expr,var,p),
+    coeffsv:makelist(at([i,ans[2],ans[3]],n=i),i,sv),
+    declare(n,integer),
+    coeffsv:ev(coeffsv),
+    ans:ev(ans),
+    remove(n,integer),
+    return(syntactic_factor(ratsimp([ans,coeffsv])))
+)$
+
+fouriercoeff_expand(fcoeff,var,p,NN):=block(
+    [ans,a0,an,bn,sv,indx_sv,svsum,sl_indx,laux],
+    [[a0,an,bn],sv]:fcoeff,
+    an:ev(an),
+    bn:ev(bn),
+    if emptyp(sv) then(
+        ans:a0+sum(an*cos(n*%pi*var/p)+bn*sin(n*%pi*var/p),n,1,NN),
+        return(ans)
+    ) else(
+        indx_sv:makelist(sv[i][1],i,1,length(sv)),
+        if is(NN=inf) then(
+        svsum:sum(sv[i][2]*cos(sv[i][1]*%pi*var/p)+sv[i][3]*sin(sv[i][1]*%pi*var/p),i,1,length(sv)),
+        ans:a0+svsum+sum(an*cos(n*%pi*var/p)+bn*sin(n*%pi*var/p),n,1,inf),
+        if is(an=0) and is(bn=0) then return(ans),
+        print("The sum is over \\N -",setify(indx_sv)),
+        return(ans)
+        )
+        else(
+        sl_indx:sublist_indices(indx_sv,lambda([e],is(e<=NN))),
+        svsum:lsum(sv[i][2]*cos(sv[i][1]*%pi*var/p)+sv[i][3]*sin(sv[i][1]*%pi*var/p),i,sl_indx),
+        laux:listify(setdifference(setify(makelist(i,i,1,NN)),setify(indx_sv))),
+        ans:a0+svsum+lsum(at(an*cos(n*%pi*var/p)+bn*sin(n*%pi*var/p),n=i),i,laux),
+        return(ans)
+        )
+    )
+)$
+
+fourier_series(expr,var,p,NN):=block(
+    [fcoeff,ans],
+    fcoeff:fouriercoeff(expr,var,p),
+    ans:fouriercoeff_expand(fcoeff,var,p,NN),
+    ans
+)$
+
+fourier_amplitudes(expr,var,p,N):=block(
+    [a0,an,bn,ans,sv,indx_sv,svlist,sl_indx,laux],
+    [[a0,an,bn],sv]:fouriercoeff(expr,var,p),
+    an:ev(an),
+    bn:ev(bn),
+    if emptyp(sv) then(
+    ans:makelist(at([n,sqrt(an^2+bn^2)],n=i),i,1,N),
+    /*ans:float(ans),*/
+    return(ans)) else(
+    indx_sv:makelist(sv[i][1],i,1,length(sv)),
+    sl_indx:sublist_indices(indx_sv,lambda([e],is(e<N))),
+    svlist:makelist([sv[i][1],sqrt(sv[i][2]^2+sv[i][3]^2)],i,sl_indx),
+    laux:listify(setdifference(setify(makelist(i,i,1,N)),setify(indx_sv))),
+    ans:append(svlist,makelist(at([n,sqrt(an^2+bn^2)],n=i),i,laux)),
+    /*ans:float(ans),*/
+    ans:sort(ans,lambda([a,b],a[1]<b[1])),
+    return(ans)
+    )
+)$
+
+fourier_freq_list(expr,var,p,N):=block(
+    [modules],
+    modules:float(fourier_amplitudes(expr,var,p,N))
+)$
+
+fourier_freq(expr,var,p,N):=block(
+    [modules],
+    modules:float(fourier_amplitudes(expr,var,p,N)),
+    draw2d(points_joined=impulses,line_width=4,color="blue",points(modules),
+        xlabel="w(n)=nw_0",ylabel="|c_n|",axis_top=false,axis_right=false,xtics=1,user_preamble="set grid ytics")
+)$
+
+wxfourier_freq(expr,var,p,N):=block(
+    [modules],
+    modules:float(fourier_amplitudes(expr,var,p,N)),
+    wxdraw2d(points_joined=impulses,line_width=4,color="blue",points(modules),
+                  xlabel="w(n)=nw_0",ylabel="|c_n|",axis_top=false,axis_right=false,xtics=1,user_preamble="set grid ytics")
+)$
+
+atan_fourier(an,bn):=if is(an=0) and is(bn=0) then 0 else atan2(an,bn)$
+
+fourier_phshift(expr,var,p,N):=block(
+    [a0,an,bn,ans,sv,indx_sv,svlist,sl_indx,laux],
+    [[a0,an,bn],sv]:fouriercoeff(expr,var,p),
+    an:ev(an),
+    bn:ev(bn),
+    if emptyp(sv) then(
+    ans:makelist([i,atan_fourier(at(bn,n=i),at(an,n=i))],i,1,N),
+    /*ans:float(ans),*/
+    return(ans)) else(
+    indx_sv:makelist(sv[i][1],i,1,length(sv)),
+    sl_indx:sublist_indices(indx_sv,lambda([e],is(e<N))),
+    svlist:makelist([sv[i][1],atan_fourier(sv[i][3],sv[i][2])],i,sl_indx),
+    laux:listify(setdifference(setify(makelist(i,i,1,N)),setify(indx_sv))),
+    ans:append(svlist,makelist([i,atan_fourier(at(bn,n=i),at(an,n=i))],i,laux)),
+    /*ans:float(ans),*/
+    ans:sort(ans,lambda([a,b],a[1]<b[1])),
+    return(ans)
+    )
+)$
+
+
+
+fourier_harm(expr,var,p,N):=block(
+    [amplitudes,phshift,ans],
+    amplitudes:fourier_amplitudes(expr,var,p,N),
+    phshift:fourier_phshift(expr,var,p,N),
+    ans:makelist(amplitudes[i][2]*cos(i*%pi*var/p-phshift[i][2]),i,1,N),
+    return(ans)
+)$
+
+chop(expr,[N]):=if emptyp(N) then scanmap(lambda([x],if is(numberp(x)) then (if is(abs(x)<1.0*10^(-12)) then 0.0 else x) else x),expr)
+else scanmap(lambda([x],if is(numberp(x)) then (if is(abs(x)<1.0*10^(-N[1])) then 0.0 else x) else x),expr)$
+
+
+odd_extension(expr,var,p):=block(
+    [Laux],
+    if piecewisep(expr) then(
+    Laux:pw2list(expr,var),
+    if is(Laux[1][1][1]=0) and is(Laux[length(Laux)][1][2]=p) then return(oddextensionpw(Laux,var))
+    else error("The domain must be of the form [0,p]")
+    )
+    else(
+    Laux:[[[0,p],expr]],
+    return(oddextensionpw(Laux,var))
+    )
+)$
+
+even_extension(expr,var,p):=block(
+    [Laux],
+    if piecewisep(expr) then(
+    Laux:pw2list(expr,var),
+    if is(Laux[1][1][1]=0) and is(Laux[length(Laux)][1][2]=p) then return(evenextensionpw(Laux,var))
+    else error("The domain must be of the form [0,p]")
+    )
+    else(
+    Laux:[[[0,p],expr]],
+    return(evenextensionpw(Laux,var))
+    )
+)$
+
+fouriersincoeffpw(Llist,var):=block(
+    [llaux,ll,bn,answ,lm],
+    ll:length(Llist),
+    lm:(Llist[ll][1][2]-Llist[1][1][1]), /*No need to divide by 2*/
+    Laux:secsum2bl(Llist),
+    llaux:length(Laux),
+    bn:2*sum(heuristic_bn(Laux[i][2],var,lm,Laux[i][1][1],Laux[i][1][2]),i,1,llaux),
+    answ:[bn],
+    answ:map(simplify_sum,answ),
+    return(ratsimp(answ) )
+)$
+
+fouriercoscoeffpw(Llist,var):=block(
+    [llaux,ll,a0,an,answ,lm],
+    ll:length(Llist),
+    lm:(Llist[ll][1][2]-Llist[1][1][1]), /*No need to divide by 2*/
+    Laux:secsum2bl(Llist),
+    llaux:length(Laux),
+    a0:(1/(lm))*pwintegrate(Llist,var),
+    an:2*sum(heuristic_an(Laux[i][2],var,lm,Laux[i][1][1],Laux[i][1][2]),i,1,llaux),
+    answ:[a0,an],
+    answ:map(simplify_sum,answ),
+    return(ratsimp(answ) )
+)$
+
+fouriersincoeffterm(term,var,p):=block(
+    [bn,ans],
+    if listp(term) then(
+    if is(bounded_ext(term,var)=p) then
+    return(fouriersincoeffpw(term,var))
+    else error("Domain of the piecewise function is not valid. Read the documentation for further details")
+    )
+    elseif piecewisep(term) then(
+    /*Check if the domain is valid*/
+    if is(bounded_ext(pw2list(term,var))=p) then
+    return(fouriersincoeffpw(map(lambda([e],[e[1],expand(trigrat(e[2]))]),pw2list(term,var)),var))
+    else error("Domain of the piecewise function is not valid. Read the documentation for further details")
+    )
+    else(
+    bn:2*heuristic_bn(term,var,p,0,p),
+    ans:ratsimp([bn]),
+    return(ans)
+    )
+)$
+
+fouriercoscoeffterm(term,var,p):=block(
+    [a0,an,ans],
+    if listp(term) then(
+    if is(bounded_ext(term,var)=p) then
+    return(fouriercoscoeffpw(term,var))
+    else error("Domain of the piecewise function is not valid. Read the documentation for further details")
+    )
+    elseif piecewisep(term) then(
+    /*Check if the domain is valid*/
+    if is(bounded_ext(pw2list(term,var))=p) then
+    return(fouriercoscoeffpw(map(lambda([e],[e[1],expand(trigrat(e[2]))]),pw2list(term,var)),var))
+    else error("Domain of the piecewise function is not valid. Read the documentation for further details")
+    )
+    else(
+    a0:ratsimp((1/p)*integrate(term,var,0,p)),
+    an:2*heuristic_an(term,var,p,0,p),
+    ans:ratsimp([a0,an]),
+    return(ans)
+    )
+)$
+
+fouriersincoeff(expr,var,p):=block(
+    [ans,Llist,Laux,coeffsv,sv,n],
+    Laux:sum2list(expand(expr)),
+    Llist:map(lambda([e],if not piecewisep(e) then expand(trigrat(e)) else e),Laux),
+    Llist:list2bl(Llist),
+    ans:lsum(y,y,map(lambda([e],fouriersincoeffterm(e,var,p)),Llist)),
+    ans:ratsimp(ans),
+    sv:searchsv(expr,var,p),
+    /*Now there is only a list of the form [bn]*/
+    coeffsv:makelist(at([i,ans[1]],n=i),i,sv),
+    declare(n,integer),
+    coeffsv:ev(coeffsv),
+    ans:ev(ans),
+    remove(n,integer),
+    return(syntactic_factor(ratsimp([ans,coeffsv])))
+)$
+
+fouriercoscoeff(expr,var,p):=block(
+    [ans,Llist,Laux,coeffsv,sv,n],
+    Laux:sum2list(expand(expr)),
+    Llist:map(lambda([e],if not piecewisep(e) then expand(trigrat(e)) else e),Laux),
+    Llist:list2bl(Llist),
+    ans:lsum(y,y,map(lambda([e],fouriercoscoeffterm(e,var,p)),Llist)),
+    ans:ratsimp(ans),
+    sv:searchsv(expr,var,p),
+    /*Now there is only a list of the form [a0,an]*/
+    coeffsv:makelist(at([i,ans[2]],n=i),i,sv),
+    declare(n,integer),
+    coeffsv:ev(coeffsv),
+    ans:ev(ans),
+    remove(n,integer),
+    return(syntactic_factor(ratsimp([ans,coeffsv])))
+)$
+
+fouriersincoeff_expand(sincoeff,var,p,NN):=block(
+    [ans,bn,sv,indx_sv,svsum,sl_indx,laux],
+    [[bn],sv]:sincoeff,
+    bn:ev(bn),
+    if emptyp(sv) then(
+        ans:sum(bn*sin(n*%pi*var/p),n,1,NN),
+        return(ans)
+    ) else(
+        indx_sv:makelist(sv[i][1],i,1,length(sv)),
+        if is(NN=inf) then(
+         svsum:sum(sv[i][2]*sin(sv[i][1]*%pi*var/p),i,1,length(sv)),
+        ans:svsum+sum(bn*sin(n*%pi*var/p),n,1,inf),
+        if is(bn=0) then return(ans),
+        print("The sum is over \\N-",setify(indx_sv)),
+        return(ans)
+        )
+        else(
+        sl_indx:sublist_indices(indx_sv,lambda([e],is(e<=NN))),
+        svsum:lsum(sv[i][2]*sin(sv[i][1]*%pi*var/p),i,sl_indx),
+        laux:listify(setdifference(setify(makelist(i,i,1,NN)),setify(indx_sv))),
+        ans:svsum+lsum(at(bn*sin(n*%pi*var/p),n=i),i,laux),
+        return(ans)
+        )
+    )
+)$
+
+fouriercoscoeff_expand(coscoeff,var,p,NN):=block(
+    [ans,a0,an,sv,indx_sv,svsum,sl_indx,laux],
+    [[a0,an],sv]:coscoeff,
+    an:ev(an),
+    if emptyp(sv) then(
+        ans:a0+sum(an*cos(n*%pi*var/p),n,1,NN),
+        return(ans)
+    ) else(
+        indx_sv:makelist(sv[i][1],i,1,length(sv)),
+        if is(NN=inf) then(
+        svsum:sum(sv[i][2]*cos(sv[i][1]*%pi*var/p),i,1,length(sv)),
+        ans:a0+svsum+sum(an*cos(n*%pi*var/p),n,1,inf),
+        if is(an=0) then return(ans),
+        print("The sum is over \\N -",setify(indx_sv)),
+        return(ans)
+        )
+        else(
+        sl_indx:sublist_indices(indx_sv,lambda([e],is(e<=NN))),
+        svsum:lsum(sv[i][2]*cos(sv[i][1]*%pi*var/p),i,sl_indx),
+        laux:listify(setdifference(setify(makelist(i,i,1,NN)),setify(indx_sv))),
+        ans:a0+svsum+lsum(at(an*cos(n*%pi*var/p),n=i),i,laux),
+        return(ans)
+        )
+    )
+)$
+
+fouriersin_series(expr,var,p,NN):=block(
+    [ans,sincoeff],
+    sincoeff:fouriersincoeff(expr,var,p),
+    ans:fouriersincoeff_expand(sincoeff,var,p,NN),
+    ans
+)$
+
+fouriercos_series(expr,var,p,NN):=block(
+    [ans,coscoeff],
+    coscoeff:fouriercoscoeff(expr,var,p),
+    ans:fouriercoscoeff_expand(coscoeff,var,p,NN),
+    ans
+)$
+
+real2complex_fcoeff(fcoeff):=block(
+    [c0,cn,csv,rsv,a0,an,bn],
+    [[a0,an,bn],rsv]:fcoeff,
+    c0:a0,
+    cn:(an-%i*bn)/2,
+    csv:map(lambda([e],[e[1],(e[2]-%i*e[3])/2]),rsv),
+    syntactic_factor(ratsimp([[c0,cn],csv]))
+)$
+
+cfouriercoeff(expr,var,p):=real2complex_fcoeff(fouriercoeff(expr,var,p))$
+
+cfouriercoeff_expand(cfcoeff,var,p,NN):=block(
+        [ans,c0,cn,csv,indx_csv,csvsumpos,csvsumneg,sl_indx,laux],
+    [[c0,cn],csv]:cfcoeff,
+    an:ev(cn),
+    if emptyp(csv) then(
+        if is(NN=inf) then(
+        ans:c0+sum(at(cn*exp(%i*n*%pi*var/p),n=n),n,minf,inf),
+        print("The sum is over \\N-\{0\}"),
+        return(ans)
+        ) else(
+        ans:c0+sum(at(conjugate(cn)*exp(%i*-n*%pi*var/p),n=n),n,1,NN)
+        +sum(at(cn*exp(%i*n*%pi*var/p),n=n),n,1,NN),
+        return(ratsimp(demoivre(ans))))
+    ) else(
+        indx_csv:map(first,csv),
+        if is(NN=inf) then(
+        csvsumpos:sum(csv[i][2]*exp(%i*csv[i][1]*%pi*var/p),i,1,length(csv)),
+        csvsumneg:sum(conjugate(csv[i][2])*exp(-%i*csv[i][1]*%pi*var/p),i,1,length(csv)),
+        ans:c0+csvsumpos+csvsumneg+sum(at(cn*exp(%i*n*%pi*var/p),n=n),n,minf,inf),
+        if is(cn=0) then return(ans),
+        print("The sum is over \\N -",setify(append(indx_csv,[0]))),
+        return(ans)
+        )
+        else(
+        sl_indx:sublist_indices(indx_csv,lambda([e],is(e<=NN))),
+        csvsumpos:lsum(csv[i][2]*exp(%i*csv[i][1]*%pi*var/p),i,sl_indx),
+        csvsumneg:lsum(conjugate(csv[i][2])*exp(-%i*csv[i][1]*%pi*var/p),i,sl_indx),
+        laux:listify(setdifference(setify(makelist(i,i,1,NN)),setify(indx_csv))),
+        ans:c0+csvsumpos+csvsumneg+lsum(at(cn*exp(%i*n*%pi*var/p),n=i),i,laux)
+        +lsum(at(conjugate(cn)*exp(-%i*n*%pi*var/p),n=i),i,laux),
+        return(ratsimp(demoivre(ans)))
+        )
+    )
+)$
+
+cfourier_series(expr,var,p,NN):=cfouriercoeff_expand(cfouriercoeff(expr,var,p),var,p,NN)$
+
+evalsv_scn(bfn,svf,indx_pf,indx):=block([n],
+    if member(indx,indx_pf) then return(assoc(indx,svf))
+    else return(at(bfn,n=indx))
+)$
+
+fourier_heatcoeff(Qexpr,fexpr,xvar,tvar,p,kap):=block(
+    [bnf,bnQ,svf,svQ,indxpf,indxpQ,indxp,n,un,svU,ans,s],
+     [[bnf],svf]:fouriersincoeff(fexpr,xvar,p),
+    [[bnQ],svQ]:fouriersincoeff(Qexpr,xvar,p),
+    declare(n,integer),
+    un:bnf*exp(-(n*%pi/p)^2*kap*tvar)+integrate(at(bnQ,tvar=s)*exp(-(n*%pi/p)^2*kap*(tvar-s)),s,0,tvar),
+    if emptyp(svf) and emptyp(svQ) then (ans:[[un],[]], remove(n,integer), return(ratsimp(ans)))
+    /*now let's deal with the sv*/
+    else(
+    indxpf:map(first,svf), indxpQ:map(first,svQ),
+    indxp:unique(append(indxpf,indxpQ)),
+    svU:map(lambda([e],[e,evalsv_scn(bnf,svf,indxpf,e)*exp(-(e*%pi/p)^2*kap*tvar)
+                +integrate(at(evalsv_scn(bnQ,svQ,indxpQ,e),tvar=s)*exp(-(e*%pi/p)^2*kap*(tvar-s)),s,0,tvar)]),indxp),
+    ans:[[un],svU],
+    remove(n,integer),
+    return(ratsimp(ans))
+    )
+)$
+
+fourier_heat(Qexpr,fexpr,xvar,tvar,p,kap,NN):=fouriersincoeff_expand(fourier_heatcoeff(Qexpr,fexpr,xvar,tvar,p,kap),xvar,p,NN)$
+
+fourier_wavecoeff(Qexpr,fexpr,gexpr,xvar,tvar,p,cc):=block(
+    [indxp,indxpf,indxpQ,indxpg,n,svf,svg,svQ,bnf,bnQ,bng,Ln,un,svU,s],
+    Ln:(n*%pi*cc)/p,
+    [[bnf],svf]:fouriersincoeff(fexpr,xvar,p),
+    [[bng],svg]:fouriersincoeff(gexpr,xvar,p),
+    [[bnQ],svQ]:fouriersincoeff(Qexpr,xvar,p),
+    bng:bng/Ln, svg:map(lambda([e],[e[1],e[2]*at(1/Ln,n=e[1])]),svg),
+    declare(n,integer),
+    un:bnf*cos(Ln*tvar)+bng*sin(Ln*tvar)+(1/Ln)*integrate(at(bnQ,tvar=s)*sin(Ln*(tvar-s)),s,0,tvar),
+    if emptyp(svf) and emptyp(svQ) and emptyp(svg) then (ans:[[un],[]], remove(n,integer), return(ratsimp(ans)))
+    /*now let's deal with the sv*/
+    else(
+    indxpf:map(first,svf), indxpQ:map(first,svQ), indxpg:map(first,svg),
+    indxp:unique(append(indxpf,indxpQ,indxpg)),
+    svU:map(lambda([e],[e,evalsv_scn(bnf,svf,indxpf,e)*cos(e*%pi*cc*tvar/p)+
+                evalsv_scn(bng,svg,indxpg,e)*sin(e*%pi*cc*tvar/p)+
+                    (p/(e*%pi*cc))*integrate(at(evalsv_scn(bnQ,svQ,indxpQ,e),tvar=s)*sin(e*%pi*cc*(tvar-s)/p),s,0,tvar)]),indxp),
+    ans:[[un],svU],
+    remove(n,integer),
+    return(syntactic_factor(ans))
+    )
+)$
+
+fourier_wave(Qexpr,fexpr,gexpr,xvar,tvar,p,cc,NN):=fouriersincoeff_expand(fourier_wavecoeff(Qexpr,fexpr,gexpr,xvar,tvar,p,cc),xvar,p,NN)$
+
+dirichlet_heat(Qexpr,fexpr,h1expr,h2expr,xvar,tvar,p,kap,NN):=block(
+[Qaux,faux,vaux,h1l,h2l,vauxdiff,vaux0,Ql,fl],
+    if not piecewisep(h1expr) and not piecewisep(h2expr) then(
+    vaux:(h1expr-h2expr)*xvar/p-h1expr,
+    if piecewisep(Qexpr) then Qaux:list2pw_expr(pwglobalsuml(pw2list(Qexpr,xvar),diff(vaux,tvar)),xvar)
+    else Qaux:Qexpr+diff(vaux,tvar),
+    if piecewisep(fexpr) then faux:list2pw_expr(pwglobalsuml(pw2list(fexpr,xvar),at(vaux,tvar=0)),xvar)
+    else faux:fexpr+at(vaux,tvar=0),
+    return(fourier_heat(Qaux,faux,xvar,tvar,p,kap,NN)-vaux)
+)
+   else error("h_1 and h_2 must be defined globally")
+)$
+dirichlet_wave(Qexpr,fexpr,gexpr,h1expr,h2expr,xvar,tvar,p,cc,NN):=block(
+[Qaux,faux,gaux,vaux,vauxdiff2,vauxdiff0,vaux0,Ql,fl,gl],
+    if not piecewisep(h1expr) and not piecewisep(h2expr) then(
+    vaux:(h1expr-h2expr)*xvar/p-h1expr,
+    if piecewisep(Qexpr) then Qaux:list2pw_expr(pwglobalsuml(pw2list(Qexpr,xvar),diff(vaux,tvar,2)),xvar)
+    else Qaux:Qexpr+diff(vaux,tvar,2),
+    if piecewisep(fexpr) then faux:list2pw_expr(pwglobalsuml(pw2list(fexpr,xvar),at(vaux,tvar=0)),xvar)
+    else faux:fexpr+at(vaux,tvar=0),
+    if piecewisep(gexpr) then gaux:list2pw_expr(pwglobalsuml(pw2list(gexpr,xvar),at(diff(vaux,tvar),tvar=0)),xvar)
+    else gaux:gexpr+at(diff(vaux,tvar),tvar=0),
+    return(fourier_wave(Qaux,faux,gaux,xvar,tvar,p,cc,NN)-vaux)
+    )
+    else error("h_1 and h_2 must be defined globally")
+)$
+
+dirichlet_laplace_disk(a,fexpr,var,NN):=block(
+    [cn,c0,csv,n],
+    [[c0,cn],csv]:cfouriercoeff(fexpr,var,%pi),
+    cn:(r/a)^abs(n)*cn,
+    csv:map(lambda([e],[e[1],(r/a)^e[1]*e[2]]),csv),
+    cfouriercoeff_expand([[c0,cn],csv],var,%pi,NN)
+)$
+
+neumann_laplace_disk(a,fexpr,var,NN):=block(
+    [a0,an,bn,sv,n],
+    [[a0,an,bn],sv]:fouriercoeff(fexpr,var,%pi),
+    if not is(a0=0) then return("The solution does not exist.")
+    else(
+    an:(a/n)*an*(r/a)^n,
+    bn:(a/n)*bn*(r/a)^n,
+    sv:map(lambda([e],[e[1],e[2]*(a/e[1])*(r/a)^e[1],e[3]*(a/e[1])*(r/a)^e[1]]),sv),
+    return(fouriercoeff_expand([[a0,an,bn],sv],var,%pi,NN))
+        )
+)$
+
+dirichlet_laplace_annulus(a,b,fexpr,gexpr,var,NN):=block(
+    [n,cnf,c0f,cng,c0g,csvf,csvg,c0aux,cnaux,csvaux,
+        indxpf,indxpg,indxp,ans],
+    [[c0f,cnf],csvf]:cfouriercoeff(fexpr,var,%pi),
+    [[c0g,cng],csvg]:cfouriercoeff(gexpr,var,%pi),
+    c0aux:(c0g*log(b)-c0f*log(a))*log(b/a)+(c0f-c0g)*log(r)/log(b/a),
+    cnaux:(b^abs(n)*r^abs(n)-a^abs(2*n)*b^abs(n)*r^(-abs(n)))*cnf/(b^abs(2*n)-a^abs(2*n))+
+                cng*(b^abs(2*n)*a^abs(n)*r^(-abs(n))-a^abs(n)*r^abs(n))/(b^abs(2*n)-a^abs(2*n)),
+    if emptyp(csvf) and emptyp(csvg) then(
+    ans:cfouriercoeff_expand(ratsimp([[c0aux,cnaux],[]]),var,%pi,NN),
+    return(ans)
+    )   /*now let's deal with the sv*/
+    else(
+        indxpf:map(first,csvf), indxpg:map(first,csvg),
+        indxp:unique(append(indxpf,indxpg)),
+        csvaux:map(lambda([e],[e,(b^e*r^e-a^(2*e)*b^e*r^(-e))*evalsv_scn(cnf,csvf,indxpf,e)/(b^(2*e)-a^(2*e))+
+                    evalsv_scn(cng,csvg,indxpg,e)*(b^(2*e)*a^e*r^(-e)-a^e*r^e)/(b^(2*e)-a^(2*e))]),indxp),
+        ans:cfouriercoeff_expand(ratsimp([[c0aux,cnaux],csvaux]),var,%pi,NN),
+        return(ans)
+    )
+)$
+
+dirichlet_laplace_wedge(R,a,fexpr,var,NN):=block(
+    [bnf,svf,bnaux,svaux,n,p:a],
+    [[bnf],svf]:fouriersincoeff(fexpr,var,p),
+    bnaux:bnf*(r/R)^(n*%pi/a),
+    if emptyp(svf) then return(fouriersincoeff_expand([[bnaux],[]],var,p,NN))
+    else(
+    svaux:map(lambda([e],[e[1],e[2]*(r/R)^(e[1]*%pi/a)]),svf),
+    return(fouriersincoeff_expand([[bnaux],svaux],var,p,NN))
+    )
+)$
+
+neumann_laplace_wedge(R,a,fexpr,var,NN):=block(
+    [bnf,svf,bnaux,svaux,n,p:a],
+    [[bnf],svf]:fouriersincoeff(fexpr,var,p),
+    bnaux:bnf*(r/R)^(n*%pi/a)*(R*a/(n*%pi)),
+    if emptyp(svf) then return(fouriersincoeff_expand([[bnaux],[]],var,p,NN))
+    else(
+    svaux:map(lambda([e],[e[1],e[2]*(r/R)^(e[1]*%pi/a)*(R*a/(e[1]*%pi))]),svf),
+    return(fouriersincoeff_expand([[bnaux],svaux],var,p,NN))
+    )
+)$
+
+dirichlet_laplace_rectangle(a,b,f1expr,f2expr,g1expr,g2expr,var1,var2,NN):=block(
+[n,f1n,svf1,f2n,svf2,g1n,svg1,g2n,svg2,indxpf1,indxpf2,indxpg1,indxpg2,
+        indxp,Fnaux,Gnaux,svFaux,svGaux,ans],
+    [[f1n],svf1]:fouriersincoeff(f1expr,var1,a),
+    [[f2n],svf2]:fouriersincoeff(f2expr,var1,a),
+    [[g1n],svg1]:fouriersincoeff(g1expr,var2,b),
+    [[g2n],svg2]:fouriersincoeff(g2expr,var2,b),
+    Fnaux:f1n*sinh(n*%pi*(b-var2)/a)/sinh(n*%pi*b/a)+f2n*sinh(n*%pi*var2/a)/sinh(n*%pi*b/a),
+    Gnaux:g1n*sinh(n*%pi*(a-var1)/b)/sinh(n*%pi*a/b)+g2n*sinh(n*%pi*var1/b)/sinh(n*%pi*a/b),
+    if emptyp(svf1) and emptyp(svf2) and emptyp(svg1) and emptyp(svg2) then(
+        ans:fouriersincoeff_expand([[Fnaux],[]],var1,a,NN)+fouriersincoeff_expand([[Gnaux],[]],var2,b,NN),
+        return(ans)
+    )
+    else(
+        indxpf1:map(first,svf1), indxpf2:map(first,svf2),
+        indxpg1:map(first,svg1), indxpg2:map(first,svg2),
+        indxp:unique(append(indxpf1,indxpf2,indxpg1,indxpg2)),
+        svFaux:map(lambda([e],[e,evalsv_scn(f1n,svf1,indxpf1,e)*sinh(e*%pi*(b-var2)/a)/sinh(e*%pi*b/a)
+                    +evalsv_scn(f2n,svf2,indxpf2,e)*sinh(e*%pi*var2/a)/sinh(e*%pi*b/a)]),indxp),
+        svGaux:map(lambda([e],[e,evalsv_scn(g1n,svg1,indxpg1,e)*sinh(e*%pi*(a-var1)/b)/sinh(e*%pi*a/b)
+                    +evalsv_scn(g2n,svg2,indxpg2,e)*sinh(e*%pi*var1/b)/sinh(e*%pi*a/b)]),indxp),
+        ans:fouriersincoeff_expand([[Fnaux],svFaux],var1,a,NN)+fouriersincoeff_expand([[Gnaux],svGaux],var2,b,NN),
+        return(ans)
+    )
+)$
+
+neumann_laplace_rectangle(a,b,f1expr,f2expr,g1expr,g2expr,var1,var2,NN):=block(
+[n,f1n,svf1,f2n,svf2,g1n,svg1,g2n,svg2,indxpf1,indxpf2,indxpg1,indxpg2,
+        indxp,Fnaux,Gnaux,svFaux,svGaux,C,ans,f10,g10,f20,g20],
+    [[f10,f1n],svf1]:fouriercoscoeff(f1expr,var1,a),
+    [[f20,f2n],svf2]:fouriercoscoeff(f2expr,var1,a),
+    [[g10,g1n],svg1]:fouriercoscoeff(g1expr,var2,b),
+    [[g20,g2n],svg2]:fouriercoscoeff(g2expr,var2,b),
+    Fnaux:(-a/(n*%pi))*f1n*cosh(n*%pi*(b-var2)/a)/sinh(n*%pi*b/a)+(a/(n*%pi))*f2n*cosh(n*%pi*var2/a)/sinh(n*%pi*b/a),
+    Gnaux:(-b/(n*%pi))*g1n*cosh(n*%pi*(a-var1)/b)/sinh(n*%pi*a/b)+(b/(n*%pi))*g2n*cosh(n*%pi*var1/b)/sinh(n*%pi*a/b),
+    if emptyp(svf1) and emptyp(svf2) and emptyp(svg1) and emptyp(svg2) then(
+        ans:fouriercoscoeff_expand([[0,Fnaux],[]],var1,a,NN)+fouriercoscoeff_expand([[0,Gnaux],[]],var2,b,NN),
+        return(ans+C)
+    )
+    else(
+        indxpf1:map(first,svf1), indxpf2:map(first,svf2),
+        indxpg1:map(first,svg1), indxpg2:map(first,svg2),
+        indxp:unique(append(indxpf1,indxpf2,indxpg1,indxpg2)),
+        svFaux:map(lambda([e],[e,(-a/(n*%pi))*evalsv_scn(f1n,svf1,indxpf1,e)*cosh(e*%pi*(b-var2)/a)/sinh(e*%pi*b/a)
+                    +(a/(n*%pi))*evalsv_scn(f2n,svf2,indxpf2,e)*cosh(e*%pi*var2/a)/sinh(e*%pi*b/a)]),indxp),
+        svGaux:map(lambda([e],[e,(-b/(n*%pi))*evalsv_scn(g1n,svg1,indxpg1,e)*cosh(e*%pi*(a-var1)/b)/sinh(e*%pi*a/b)
+                    +(b/(n*%pi))*evalsv_scn(g2n,svg2,indxpg2,e)*cosh(e*%pi*var1/b)/sinh(e*%pi*a/b)]),indxp),
+        ans:fouriercoscoeff_expand([[0,Fnaux],svFaux],var1,a,NN)+fouriercoscoeff_expand([[0,Gnaux],svGaux],var2,b,NN),
+        return(ans+C)
+    )
+)$
+
+/*Beggining of 2D Wave equation*/
+
+BesselJZeros(m,k,[u]):=block([a,alpha,A,answ],local(a,alpha,A),
+if is(not(m>-1)) then return("The order m must be m>-1"),
+if (is(not(integerp(k))) or is(not(k > 0))) then return("k must be an integer k>0"),
+a[i]:=m+2*i,
+alpha[i,j]:=if is(equal(i,j)) then 2/((a[i]-1)*(a[i]+1))
+            elseif is(equal(j,i-1)) then 1/((a[i]-1)*sqrt((a[i]-2)*a[i]))
+            elseif is(equal(j,i+1)) then 1/((a[i+1]-1)*sqrt((a[i+1]-2)*a[i+1]))
+            else 0,
+A:genmatrix(alpha,ceiling(k/0.64)+10,ceiling(k/0.64)+10),
+answ:2/sqrt(first(eigens_by_jacobi(A,floatfield))),
+if (is(not(equal(length(u),0))) and is(equal(first(u),all))) then
+    firstn(sort(answ),k)
+elseif (is(not(equal(length(u),0))) and is(not(equal(first(u),all)))) then
+    return("Do you want the first k roots? In this case, the option is 'all'")
+else
+    last(firstn(sort(answ),k))
+)$
+
+simpgen(l1,l2):=append(endcons(last(l1)+first(l2),rest(l1,-1)),rest(l2,1))$
+
+pairing(L1,L2):=xreduce(append,map(lambda([x],map(lambda([y],[x,y]),L2)),L1))$
+
+nintegrate(f,m,[I]):=block([n:length(args(lhs(apply(fundef,[f])))),tmp:xreduce(simpgen,makelist([1,4,1],j,1,m/2)),x,deltax,p,w,ww,xx],local(x,deltax,p,w),
+if is(not(evenp(m))) then return ("The number of subdivisions m must be even")
+elseif is(not(equal(length(I),n))) then return("The number of variables xi and intervals [ai,bi] must match") else
+ (
+    for i:1 thru n do x[i]:args(lhs(apply(fundef,[f])))[i],
+    for i:1 thru n do deltax[i]:(I[i][2]-I[i][1])/m,
+    for j:1 thru n do p[j]:makelist(I[j][1]+k*deltax[j],k,0,m),
+    for j:1 thru n do w[j]:(deltax[j]/3)*tmp,
+    if is(equal(n,1)) then
+        ww:w[1]
+    else
+        ww:map(lambda([x],apply("*",x)),map(flatten,xreduce(pairing,makelist(w[j],j,1,n)))),
+    if is(equal(n,1)) then
+        xx:p[1]
+    else
+        xx:map(flatten,xreduce(pairing,makelist(p[j],j,1,n))),
+    if is(equal(n,1)) then
+        bfloat(apply("+",ww*map(f,xx)))
+    else
+        bfloat(apply("+",ww*map(lambda([x],apply(f,x)),xx)))
+ )
+)$
+
+a0(n,a,f):=block([r:args(lhs(apply(fundef,[f])))[1],theta:args(lhs(apply(fundef,[f])))[2],lam:BesselJZeros(0,n)/a,p:%pi,ff,k],local(ff),
+define(funmake(ff,[r,theta]),apply(f,[r,theta])*r*bessel_j(0,lam*r)),
+k:1/(p*a^2*(bessel_j(1,lam))^2),
+k*nintegrate(ff,14,[0,a],[0,2*p])
+)$
+
+a(m,n,a,f):=block([r:args(lhs(apply(fundef,[f])))[1],theta:args(lhs(apply(fundef,[f])))[2],lam:BesselJZeros(0,n)/a,p:%pi,ff,k],local(ff),
+define(funmake(ff,[r,theta]),apply(f,[r,theta])*r*bessel_j(0,lam*r)*cos(m*theta)),
+k:2/(p*a^2*(bessel_j(m+1,lam))^2),
+k*nintegrate(ff,14,[0,a],[0,2*p])
+)$
+
+b(m,n,a,f):=block(
+[r:args(lhs(apply(fundef,[f])))[1],theta:args(lhs(apply(fundef,[f])))[2],lam:BesselJZeros(0,n)/a,p:%pi,ff,k],local(ff),
+define(funmake(ff,[r,theta]),apply(f,[r,theta])*r*bessel_j(0,lam*r)*sin(m*theta)),
+k:2/(p*a^2*(bessel_j(m+1,lam))^2),
+k*nintegrate(ff,14,[0,a],[0,2*p])
+)$
+
+as0(n,a,c,f):=block([r:args(lhs(apply(fundef,[f])))[1],theta:args(lhs(apply(fundef,[f])))[2],lam:BesselJZeros(0,n)/a,p:%pi,ff,k],local(ff),
+define(funmake(ff,[r,theta]),apply(f,[r,theta])*r*bessel_j(0,lam*r)),
+k:1/(c*p*lam*a^2*(bessel_j(1,lam))^2),
+k*nintegrate(ff,14,[0,a],[0,2*p])
+)$
+
+as(m,n,a,c,f):=block([r:args(lhs(apply(fundef,[f])))[1],theta:args(lhs(apply(fundef,[f])))[2],lam:BesselJZeros(0,n)/a,p:%pi,ff,k],local(ff),
+define(funmake(ff,[r,theta]),apply(f,[r,theta])*r*bessel_j(0,lam*r)*cos(m*theta)),
+k:2/(c*p*lam*a^2*(bessel_j(m+1,lam))^2),
+k*nintegrate(ff,14,[0,a],[0,2*p])
+)$
+
+bs(m,n,a,c,f):=block([r:args(lhs(apply(fundef,[f])))[1],theta:args(lhs(apply(fundef,[f])))[2],lam:BesselJZeros(0,n)/a,p:%pi,ff,k],local(ff),
+define(funmake(ff,[r,theta]),apply(f,[r,theta])*r*bessel_j(0,lam*r)*sin(m*theta)),
+k:2/(c*p*lam*a^2*(bessel_j(m+1,lam))^2),
+k*nintegrate(ff,14,[0,a],[0,2*p])
+)$
+
+wave2d_disk(c,a,f,g,k,l):=block([A0,A,B,As0,As,Bs,lamb],local(A0,A,B,As0,As,Bs,lamb,t),
+A0[i]:=a0(i,a,f),A[i,j]:=a(i,j,a,f),B[i,j]:=b(i,j,a,f),As0[i]:=as0(i,a,c,g),As[i,j]:=as(i,j,a,c,g),Bs[i,j]:=bs(i,j,a,c,g),
+lamb[i,j]:=BesselJZeros(i,j)/a,
+sum(A0[n]*bessel_j(0,lamb[0,n]*r)*cos(c*lamb[0,n]*t),n,1,l)
++sum(sum(bessel_j(m,lamb[m,n]*r)*(A[m,n]*cos(m*theta)+B[m,n]*sin(m*theta))*cos(c*lamb[m,n]*t),n,1,l),m,1,k)
++sum(As0[n]*bessel_j(0,lamb[0,n]*r)*sin(c*lamb[0,n]*t),n,1,l)
++sum(sum(bessel_j(m,lamb[m,n]*r)*(As[m,n]*cos(m*theta)+Bs[m,n]*sin(m*theta))*sin(c*lamb[m,n]*t),n,1,l),m,1,k)
+)$
+
+Arect(f,a,b,m,n):=block([x:args(lhs(apply(fundef,[f])))[1],y:args(lhs(apply(fundef,[f])))[2]],
+define(funmake(ff,[x,y]),apply(f,[x,y])*sin(m*%pi*x/a)*sin(m*%pi*y/b)),
+4*(nintegrate(ff,14,[0,a],[0,b]))/(a*b)
+)$
+
+Brect(g,a,b,c,m,n):=block([x:args(lhs(apply(fundef,[f])))[1],y:args(lhs(apply(fundef,[f])))[2],lamb],local(lamb),
+lamb[m,n]:=((m/a)^2+(n/b)^2)/(%pi^2),
+define(funmake(gg,[x,y]),apply(g,[x,y])*sin(m*%pi*x/a)*sin(m*%pi*y/b)),
+4*(nintegrate(gg,14,[0,a],[0,b]))/(a*b*c*sqrt(lam[m,n]))
+)$
+
+wave2d_rectangle(c,a,b,f,g,k,l):=block([x:args(lhs(apply(fundef,[f])))[1],y:args(lhs(apply(fundef,[f])))[2],lamb,t],local(lamb,t),
+lamb[m,n]:=((m/a)^2+(n/b)^2)/(%pi^2),
+sum(sum((Arect(f,a,b,m,n)*cos(sqrt(lamb[0,n])*c*t)+Brect(g,a,b,c,m,n)*sin(sqrt(lamb[0,n])*c*t))*sin(m*%pi*x/a)*sin(n*%pi*y/b),m,1,k),n,1,l)
+)$
+
+neumann_heat(Qexpr,Fexpr,h1expr,h2expr,xvar,tvar,kap,p,NN):=block(
+    [saux,qaux,faux,a0q,a0f,anq,anf,svq,svf,indxpq,indxpf,h1pw,h2pw,
+        u0,un,svu,indxp,s,ans],
+    /*Let's check if h1 and h2 are piecewise defined or not*/
+    if not piecewisep(h1expr) and not piecewisep(h2expr) then (
+        saux:(h2expr-h1expr)*xvar^2/(2*p)+h1expr*xvar,
+        if piecewisep(Qexpr) then qaux:list2pw_expr(pwglobalsuml(pw2list(Qexpr,xvar),diff(h1expr-h2expr,tvar)*xvar^2/(2*p)
+        -diff(h1expr,tvar)*xvar+kap*(h2expr-h1expr)/p),xvar)
+        else qaux:Qexpr+diff(h1expr-h2expr,tvar)*xvar^2/(2*p)-diff(h1expr,tvar)*xvar+kap*(h2expr-h1expr)/p,
+        if piecewisep(Fexpr) then faux:list2pw_expr(pwglobalsuml(pw2list(Fexpr,xvar),-at(saux,tvar=0)),xvar)
+        else faux:Fexpr-at(saux,tvar=0)
+    ) else error("h_1 and h_2 must be defined globally"),
+    [[a0q,anq],svq]:fouriercoscoeff(qaux,xvar,p),
+    [[a0f,anf],svf]:fouriercoscoeff(faux,xvar,p),
+    u0:a0f+factor(expand(integrate(at(a0q,tvar=s),s,0,tvar))),
+    un:syntactic_factor(exp(-kap*(n*%pi/p)^2*tvar)*anf+exp(-kap*(n*%pi/p)^2*tvar)*integrate(exp(kap*(n*%pi/p)^2*s)*at(anq,tvar=s),s,0,tvar)),
+    if emptyp(svq) and emptyp(svf) then(
+    ans:saux+fouriercoscoeff_expand([[u0,un],[]],xvar,p,NN),
+    return(ans)
+    ) else(
+    indxpq:map(first,svq), indxpf:map(first,svf),
+    indxp:unique(append(indxpf,indxpq)),
+    svu:map(lambda([e],[e,exp(-kap*(e*%pi/p)^2*tvar)*(evalsv_scn(anf,svf,indxpf,e)+
+                        integrate(exp(kap*(e*%pi/p)^2*s)*at(evalsv_scn(anq,svq,indxpq,e),tvar=s),s,0,tvar))]),indxp),
+     ans:saux+fouriercoscoeff_expand([[u0,un],svu],xvar,p,NN),
+        return(ans)
+    )
+  )$
+
+genfouriercoeff(fexpr,a1,b1,a2,b2,xvar,lambda,p):=block(
+    if piecewisep(fexpr) then return(pwintegrate(pwglobalproductl(pw2list(fexpr,xvar),b1*lambda*cos(lambda*xvar)+a1*sin(lambda*xvar)),xvar))
+    else
+    return(integrate(fexpr*(b1*lambda*cos(lambda*xvar)+a1*sin(lambda*xvar)),xvar,0,p))
+)$
+
+mixed_heat(Qexpr,Fexpr,a1,b1,a2,b2,h1expr,h2expr,xvar,tvar,p,kap,NN):=block(
+[saux,dd:a1*a2*p+a1*b2+a2*b1,qaux,lamn,intXn,faux,gnq,gnf,Tn,Xn,s,n],
+if ((is(a1=0) and is(b1=0)) or (is(a2=0) and is(b2=0))) then error("Error: the problem is singular. Check boundary conditions.")
+elseif (is(a1=0) and is(a2=0)) then return(neumann_heat(Qexpr,Fexpr,h1expr/b1,h2expr/b2,xvar,tvar,kap,p,NN))
+elseif (is(b1=0) and is(b2=0)) then return(dirichlet_heat(Qexpr,Fexpr,h1expr/a1,h2expr/a2,xvar,tvar,p,kap,NN))
+else(
+    saux:(a1*h2expr-a2*h1expr)*xvar/dd+((a2*p+b2)*h1expr+b1*h2expr)/dd,
+    if piecewisep(Qexpr) then qaux:list2pw_expr(pwglobalsuml(pw2list(Qexpr,xvar),-diff(saux,tvar)),xvar)
+        else qaux:Qexpr-diff(saux,tvar),
+    if piecewisep(Fexpr) then faux:list2pw_expr(pwglobalsuml(pw2list(Fexpr,xvar),-at(saux,tvar=0)),xvar)
+        else faux:Fexpr-at(saux,tvar=0),
+    if (is(a1=0) and is(b2=0)) or (is(a2=0) and is(b1=0)) then(
+        declare(n,integer),
+        lamn:(2*n-1)*%pi/(2*p),
+        Xn:b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
+       /* intXn:integrate(Xn*Xn,xvar,0,p) */
+        intXn:(4*a1^2*p^2+8*a1*b1*p+4*%pi^2*b1^2*n^2-4*%pi^2*b1^2*n+%pi^2*b1^2)/(8*p),
+        gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
+        gnf:genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
+        Tn:exp(-kap*(lamn)^2*tvar)*factor(expand(integrate(exp(kap*(lamn)^2*s)*at(gnq,tvar=s),s,0,tvar)+gnf)),
+        remove(n,integer),
+        saux+sum(Xn*Tn,n,1,NN)
+        )
+    elseif (is(a1=1) and is(b1=1)) and (is(a2=1) and is(b2=1)) then(
+        declare(n,integer),
+        lamn:n*%pi/p,
+        Xn:b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
+       /* intXn:integrate(Xn*Xn,xvar,0,p) */
+        intXn:(p^2+%pi^2*n^2)/(2*p),
+        gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
+        gnf:genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
+        Tn:exp(-kap*(lamn)^2*tvar)*factor(expand(integrate(exp(kap*(lamn)^2*s)*at(gnq,tvar=s),s,0,tvar)+gnf)),
+        remove(n,integer),
+        saux+sum(Xn*Tn,n,1,NN)
+        )
+    elseif (is(p=1) and (is(a2=1) and is(b2=0))) then (
+             lamn:%lambda[n],
+        disp(%lambda[n]," are the solutions of ",ratsimp(a1*sin(%lambda[n])+b1*%lambda[n]*cos(%lambda[n])=0)),
+        Xn:(b1*lamn/sin(lamn))*sin(lamn*(1-xvar)),
+        intXn:b1*(1-cos(lamn))/sin(lamn),
+        gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
+        gnf:genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
+        Tn:exp(-K*(lamn)^2*tvar)*(syntactic_factor(integrate(exp(K*(lamn)^2*s)*at(gnq,tvar=s),s,0,tvar)+gnf)),
+        saux+sum(Xn*Tn,n,1,NN)
+                                                                        )
+    else(
+        lamn:%lambda[n],
+        disp(%lambda[n]," are the solutions of ",ratsimp((a1*a2-b1*b2*(%lambda[n])^2)*sin(%lambda[n]*p)+(a1*b2+a2*b1)*%lambda[n]*cos(%lambda[n]*p)=0)),
+        Xn:b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
+        (
+            if is(b1=0) then
+            intXn:(p+(b2/a2)*(cos(p*lamn))^2)/2
+            else
+            intXn:integrate(Xn*Xn,xvar,0,p)
+        ),
+        gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
+        gnf:genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
+        Tn:exp(-kap*(lamn)^2*tvar)*syntactic_factor(integrate(exp(kap*(lamn)^2*s)*at(gnq,tvar=s),s,0,tvar)+gnf),
+        saux+sum(Xn*Tn,n,1,NN)
+        )
+    )
+)$
+
+neumann_wave(Qexpr,fexpr,gexpr,h1expr,h2expr,xvar,tvar,p,cc,NN):=block(
+    [indxp,indxpf,indxpQ,indxpg,n,svf,svg,svQ,
+        anf,anQ,ang,a0f,a0g,a0Q,Ln,un,u0,svU,s,qaux,faux,gaux,
+        ucoeff,saux],
+    Ln:(n*%pi*cc)/p,
+    saux:xvar*h1expr+(h2expr-h1expr)*xvar^2/(2*p),
+    if piecewisep(Qexpr) then qaux:list2pw_expr(pwglobalsuml(pw2list(Qexpr,xvar),-diff(saux,tvar,2)+(h2expr-h1expr)*cc^2/p),xvar)
+    else qaux:Qexpr-diff(saux,t,2)+cc^2*(h2expr-h1expr)/p,
+    if piecewisep(fexpr) then faux:list2pw_expr(pwglobalsuml(pw2list(fexpr,xvar),-at(saux,tvar=0)),xvar)
+        else faux:fexpr-at(saux,tvar=0),
+    if piecewisep(gexpr) then gaux:list2pw_expr(pwglobalsuml(pw2list(gexpr,xvar),-at(diff(saux,t),tvar=0)),xvar)
+        else gaux:gexpr-at(diff(saux,t),tvar=0),
+    [[a0f,anf],svf]:fouriercoscoeff(faux,xvar,p),
+    [[a0g,ang],svg]:fouriercoscoeff(gaux,xvar,p),
+    [[a0Q,anQ],svQ]:fouriercoscoeff(qaux,xvar,p),
+    ang:ang/Ln, svg:map(lambda([e],[e[1],e[2]*p/(e[1]*%pi*cc)]),svg),
+    declare(n,integer),
+    un:anf*cos(Ln*tvar)+ang*sin(Ln*tvar)+(1/Ln)*factor(expand(integrate(at(anQ,tvar=s)*sin(Ln*(tvar-s)),s,0,tvar))),
+    u0:a0f+a0g*tvar+integrate(at(a0Q,tvar=s)*(tvar-s),s,0,tvar),
+    if emptyp(svf) and emptyp(svQ) and emptyp(svg) then (
+        ucoeff:[[expand(u0),un],[]], remove(n,integer),
+        return(saux+fouriercoscoeff_expand(ucoeff,xvar,p,NN)))
+    /*now let's deal with the sv*/
+    else(
+    indxpf:map(first,svf), indxpQ:map(first,svQ), indxpg:map(first,svg),
+    indxp:unique(append(indxpf,indxpQ,indxpg)),
+    svU:map(lambda([e],[e,evalsv_scn(anf,svf,indxpf,e)*cos(e*%pi*cc*tvar/p)+
+                evalsv_scn(ang,svg,indxpg,e)*sin(e*%pi*cc*tvar/p)+
+                    (p/(e*%pi*cc))*factor(expand(integrate(at(evalsv_scn(anQ,svQ,indxpQ,e),tvar=s)*sin(e*%pi*cc*(tvar-s)/p),s,0,tvar)))]),indxp),
+    ucoeff:[[expand(u0),un],svU],
+    remove(n,integer),
+    return(saux+fouriercoscoeff_expand(ucoeff,xvar,p,NN))
+    )
+)$
+
+mixed_wave(Qexpr,fexpr,gexpr,a1,b1,a2,b2,h1expr,h2expr,xvar,tvar,p,cc,NN):=block(
+    [n,dd:a1*a2*L+a1*b2+a2*b1,lamn,Xn,intXn,Tn,s,gnf,gng,gnq,saux,qaux,faux,gaux],
+if ((is(a1=0) and is(b1=0)) or (is(a2=0) and is(b2=0))) then return("Error: the problem is singular. Check boundary conditions."),
+if (is(a1=0) and is(a2=0)) then (
+        return(neumann_wave(Qexpr,fexpr,gexpr,h1expr/b1,h2expr/b2,xvar,tvar,p,cc,NN))
+    )
+elseif (is(b1=0) and is(b2=0)) then (
+        return(dirichlet_wave(Qexpr,fexpr,gexpr,h1expr/a1,h2expr/a2,xvar,tvar,p,cc,NN))
+    ) else(
+    saux:(a1*h2expr-a2*h1expr)*xvar/dd+((a2*p+b2)*h1expr+b1*h2expr)/dd,
+    if piecewisep(Qexpr) then qaux:list2pw_expr(pwglobalsuml(pw2list(Qexpr,xvar),-diff(saux,tvar,2)+(h2expr-h1expr)*cc^2/p),xvar)
+    else qaux:Qexpr-diff(saux,t,2)+cc^2*(h2expr-h1expr)/p,
+    if piecewisep(fexpr) then faux:list2pw_expr(pwglobalsuml(pw2list(fexpr,xvar),-at(saux,tvar=0)),xvar)
+        else faux:fexpr-at(saux,tvar=0),
+    if piecewisep(gexpr) then gaux:list2pw_expr(pwglobalsuml(pw2list(gexpr,xvar),-at(diff(saux,t),tvar=0)),xvar)
+        else gaux:gexpr-at(diff(saux,t),tvar=0),
+if ((is(a1=0) and is(b2=0)) or (is(a2=0) and is(b1=0))) then (
+        declare(n,integer),
+        assume(2*n-1>0),
+        lamn:(2*n-1)*%pi/(2*L),
+        Xn:b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
+        intXn:integrate(Xn*Xn,xvar,0,p),
+        gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
+        gnf:genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
+        gng:genfouriercoeff(gaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
+        Tn:factor(radcan(expand(rhs(ic2(ode2('diff(Tn,tvar,2) + cc^2*(lamn)^2*Tn = gnq,Tn,tvar),tvar=0,Tn=gnf,'diff(Tn,tvar)=gng))))),
+        forget(2*n-1>0),
+        remove(n,integer),
+        saux+sum(Xn*Tn,n,1,NN)
+                                                            )
+    else (
+        lamn:%lambda[n],
+        disp(%lambda[n]," are the solutions of ",ratsimp((a1*a2-b1*b2*(%lambda[n])^2)*sin(%lambda[n]*L)+
+                    (a1*b2+a2*b1)*%lambda[n]*cos(%lambda[n]*L)=0)),
+        Xn:b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
+        (
+            if is(b1=0) then
+            intXn:(L+(b2/a2)*(cos(L*lamn))^2)/2
+            else
+            intXn:integrate(Xn*Xn,xvar,0,L)
+        ),
+        gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,L)/intXn,
+        gnf:genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,L)/intXn,
+        gng:genfouriercoeff(gaux,a1,b1,a2,b2,xvar,lamn,L)/intXn,
+        Tn:factor(radcan(expand(rhs(ic2(ode2('diff(Tn,tvar,2) + cc^2*(lamn)^2*Tn = gnq,Tn,tvar),tvar=0,Tn=gnf,'diff(Tn,tvar)=gng))))),
+        saux+sum(Xn*Tn,n,1,NN)
+        )
+    )
+)$

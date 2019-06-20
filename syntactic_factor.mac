@@ -1,0 +1,268 @@
+/* Copyright 2019 by Stavros Macrakis
+   Licensed under GNU LGPL v3 (https://www.gnu.org/copyleft/lesser.html)
+   Version 0.02 of 2019-04-11
+*/
+
+/* Possible enhancements:
+
+* Controlled use of regular factor. Possible approaches:
+    * Only for sums whose elements are products of mapatoms, so that
+      -x^2+x+a^2+3*a+2 => -(x-a-2)*(x+a+1), while (1-x)*x+a*(a+3)+2 =>
+      -((x-1)*x-a*(a+3)-2).
+    * Only when factor makes a subexpression smaller (in operator count?
+      in linear form? in number of instances of variables?).
+
+* Extend to something like factorsum, looking for subsets of terms with
+  common factors, e.g., -x^2+x+a^2+3*a+2 => (1-x)*x+a*(a+3)+2.
+  But what is syntacic_factorsum(
+
+* Factor over bags, so matrix([a*b,0],[0,b]) => b*matrix([a,0],[0,1])
+  (unsimplified)
+
+* For floats/bfloats, some possibilities:
+    * 2.8+3.4*x => 3.4*(x + 0.8235294117647058) (make leading term 1)
+    * 2.8*(1.214285714285714*x+1.0) (make smallest term 1.0)
+    * (2.4e3 + 1.0e5*x)/(2.8e4+1.0e2*x) => 1000.0*x+24.0,1.0*x+280.0
+      (normalizing leading coeff of denom to 1.0)
+    * (1000*x+24)/(x+280) (just like rat)
+    * ???
+
+* Extend syntactic_divthrough to multiple factors --
+  SD(a,x,y) or SD(a,[x,y]) == SD(SD(a,x),y)
+
+
+*/
+
+
+
+/* This package reorganizes expressions in several useful ways:
+   * Factoring syntactically, maintaining the form of the input.
+   * Rewriting a/b as (a div b) + (a rem b)/b (divthru)
+   * A syntactic version of divthru
+
+The public functions are:
+
+  syntactic_factor(ex)
+
+    For example, (2+2*(x+1)^3)/2 => (x+1)^3+1, as compared to factor(), which returns
+    (x+2)*(x^2+x+1), losing the original structure of the expression.
+
+    Returns -(x-1) rather than 1-x for uniformity; but -(x-1) is not a correctly simplified
+    form and doesn't always simplify nicely in combinations.
+
+    Syntactic_factor assumes that Q^a*Q^b=Q^(a+b) and (P*Q)^a = P^a*Q^a, regardless of the
+    nature of P, Q, a, and b, and regardless of the setting of rootscontract, radexpand, etc.
+
+    Syntactic_factor does not look inside subscripts.
+
+  divthru(ex,[by])
+
+    Rewrites a/b as (a div b) + (a rem b)/b (divthru).
+
+    Uses Maxima's divide function.
+
+    With a second argument, equivalent to divthru(ex/by), but gives a nicer result:
+    it expresses ex as (ex div by)*by + (ex rem by).
+    Example: divthru(a^3-b^3,a+b) => (b+a)*(-b^2+a*b-a^2)+2*a^3
+
+  syntactic_divthru(ex,[factor])
+
+    The syntactic equivalent of divthru. Somewhat similar to collectterms.
+    Example:
+      SD(x^2+3*a*x-x+2*a^2-2,a) => x^2+a*(3*x+2*a)-x-2
+      SD(%,x) => a*(3*x+2*a)+(x-1)*x-2
+
+HTHCTB = How The Hell Can This Be = internal error in Maxima
+
+*/
+
+factorlist_maps: append('["[","{","=",matrix],map('nounify,[diff, limit, integrate]))$
+
+syntactic_factor(ex):=
+   if mapatom(ex) then ex
+   elseif member(inpart(ex,0),factorlist_maps)  /* factor over bags in the future */
+     then map('syntactic_factor,ex)
+   else
+     block([inflag:true,         /* Global dynamic */
+	    listarith:true,      /* Global dynamic */
+	    ratsimpexpons:true], /* Global dynamic */
+       factorlist_to_expr(factorlist(ex)))$
+
+/* divthru(x/y) expresses x/y as quotient + remainder/divisor
+
+For example:
+   (x^5+x+1) / (x^4+1) =>  x + 1/(x^4+1)
+
+*/
+
+divthru(q,[by]) :=
+   if mapatom(q)
+     then q
+   elseif by#[]
+     then (
+       if rest(by)#[]
+         then error("Divthru takes one or two arguments",cons(a,by))
+	 else block([quo:divide(q,by[1])], quo[1]*by[1]+quo[2])
+	   )
+   elseif divisionp(q)  /* can't depend on inflag=false */
+     then block([n: num(q),
+	         d: denom(q),
+	         quo ],
+	      quo:divide(n,d),
+	      quo[1]+quo[2]/d )
+   else q$
+   
+/* compare to collectterms */
+syntactic_divthru(ex,[factor]):=
+  (
+   if factor#[] and rest(factor)#[] then error("syntactic_divthru takes 1 or 2 args",cons(ex,factor)),
+   if mapatom(ex) then ex
+   elseif member(inpart(ex,0),factorlist_maps)
+     then map(lambda([ex0],apply('syntactic_divthru(cons(ex0,factor)))),ex)
+   elseif factor=[]
+     then (if divisionp(ex)  /* can't depend on inflag=false */
+           then block([res:syntactic_divthru_1(num(ex),denom(ex))],
+	            res[1]+res[2]/res[3])
+           else ex)
+   else block([res:syntactic_divthru_1(ex,first(factor))],
+	            res[1]*res[3]+res[2])
+   )$
+
+syntactic_divthru_1(num,den) :=
+     block([inflag:true,         /* Global dynamic */
+	    listarith:true,      /* Global dynamic */
+	    ratsimpnumpons:true,  /* Global dynamic */
+	    quo:0, rem:0],
+	if op(num)#"+" then return(num/den),	    
+	for i in args(num) do (
+	   if i=den then quo:quo+1
+	   elseif mapatom(i) then rem:rem+i
+	   elseif op(i)="^" and first(i)=den and second(i)>0
+	     then quo:quo+i/den
+	   elseif op(i)="*" and basememberp(den,args(i))
+	     then quo:quo+i/den
+	   else rem:rem+i
+	    ),
+	[quo,rem,den])$	
+
+
+/* ONLY use in syntactic_divthru */
+basememberp(base,list):=
+  block([ret:false],
+     for i in list
+       while
+          if i=base then (ret:true, false)
+          elseif mapatom(i) then true
+          elseif op(i)="^" and first(i)=base and second(i)>0
+	    then (ret:true, false)
+	  else true
+       do 0,
+     ret )$
+
+divisionp(ex):= block([inflag:false],not mapatom(ex) and is(op(ex)="/"))$
+
+/* factorlist
+   splits argument into factors and multiplicites, like ifactors but for all expressions, not just integer
+   does *not* perform any additional polynomial factoring (NOT (x^2-1)/(x-1) => (x+1)),
+   but *does* perform integer factoring
+
+   factorlist(4*(x^2-1)/(6*(x-1)^n)) => [[2,1],[3,-1],[x^2-1,1],[x-1,-n]]
+
+   A factorlist is a list of bases and powers, just like ifactors, e.g.,
+       [[2, 2], [3, -1], [x, 2], [y, 3]] denotes 4/3*x^2*y^3
+   Bases are unique, and ordered by orderlessp
+*/
+
+/* factorlist takes Maxima expression as input and converts it to an factorlist */
+factorlist(ex):=
+  if ex=0 then [[0,1]]
+  elseif ratnump(ex)  /* includes integers */
+    then factorlist_maybe_negate(
+        ex,
+	factorlist_prod_2(ifactors(num(abs(ex))),
+	                  factorlist_multiple(ifactors(denom(abs(ex))),-1)))
+  elseif mapatom(ex) then [[ex,1]] /* includes floats */
+  elseif op(ex)="+" then 
+    factorlist_sum(maplist('factorlist,ex))
+  elseif op(ex)="*" then
+    factorlist_prod_L(maplist('factorlist,ex))
+  elseif op(ex)="^" then factorlist_multiple(factorlist(first(ex)),second(ex))
+  else [[map('syntactic_factor,ex),1]]$
+
+/* prefix a factorlist with (-1)^1. ONLY use in factorlist() */
+factorlist_maybe_negate(ex,fl):=if ex<0 then cons([-1, 1], fl) else fl$
+
+/* takes an factorlist and multiplies all the powers by a factor */
+/* factorlist_multiple([[2,3],[x,-1]]) // 8/x => [[2,-3],[x,1]] // x/8 */
+factorlist_multiple(lis,fac):=map(lambda([el],[first(el),fac*second(el)]),lis)$
+
+/* Extract common factors from list of factorlists */
+factorlist_sum(lis):=
+ block([common: factorlist_gcd_L(lis), gex, rest, res],
+    commonex:factorlist_to_expr(common),
+    rest: xreduce("+",maplist(factorlist_to_expr,lis)/commonex),
+    /* normalize (1-x) // -(x-1) */
+    if orderlessp(rest,-rest) 
+      then (common:factorlist_prod_2([[-1,1]],common),rest:-rest),
+    factorlist_prod_2(common,[[rest,1]]))$
+
+factorlist_to_expr(fl):=
+  if fl=[] then 1
+  elseif first(fl)='[-1,1]
+    then block([inner:factorlist_to_expr(rest(fl))],
+            if mapatom(inner) or op(inner)#"+" then -inner
+	    else ?subst(inner,'%%factorlist,-'%%factorlist))
+	      /* hack to generate unsimplified -(x-1) */
+  else product(fl[i][1]^fl[i][2],i,1,length(fl))$
+
+factorlist_gcd_L(lis):=
+   if lis=[] or rest(lis)=[] then []
+   else xreduce('factorlist_gcd_2,lis)$
+
+/* Take syntactic GCD of two factorlists */
+   
+factorlist_gcd_2(a,b):=
+   block([res:[], ffa, ffb, sfa, sfb],
+     if a=[[0,1]] then b      /* gcd(0,a)=a; needed for bags */
+     elseif b=[[0,1]] then a
+     else (
+       while a#[] and b#[] do (
+	 /* unmatched terms can't be in the gcd */
+	 ffa: first(first(a)), ffb: first(first(b)),
+	 if orderlessp(ffa,ffb) then a: rest(a)
+	 elseif orderlessp(ffb,ffa) then b: rest(b)
+	 elseif ffa#ffb then error("HTHCTB Trichotomy violated in factorlist_gcd",a,b)
+	 else 
+	   /* same base */
+	   ( sfa: second(first(a)), sfb: second(first(b)),
+	     /* note that orderlessp == min for numbers */
+	     push( [ffa, if orderlessp(sfa,sfb) then sfa else sfb ],
+		  res),
+	     a: rest(a), b:rest(b))),
+       reverse(res)))$
+
+/* Multiply expressions in factorlist form */
+
+factorlist_prod_L(lis):=xreduce('factorlist_prod_2,lis)$
+
+factorlist_prod_2(a,b):=
+  if a=[] then b
+  elseif b=[] then a
+  else
+  block([ffa: first(first(a)), ffb: first(first(b))],
+    if orderlessp(ffa,ffb) then cons(first(a),factorlist_prod_2(rest(a),b))
+    elseif orderlessp(ffb,ffa) then cons(first(b),factorlist_prod_2(rest(b),a))
+    elseif ffa#ffb then error("HTHCTB Trichotomy violated in factorlist_prod_2",a,b)
+    else
+      cons([ffa,second(first(a))+second(first(b))], factorlist_prod_2(rest(a),rest(b))))$
+
+/* test cases
+
+   0 => 0
+   x => x
+   x^-3 => x^-3
+   x-1 => x-1
+   1-x => 1-x   <<< General simplifier undoes -(x-1)
+   (1-x)*(x-1) => -(x-1)^2
+   (a*b+a)/(a*b+b) => (a*(b+1))/((a+1)*b)
+*/

@@ -1,0 +1,3650 @@
+/* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
+/* [ Created with wxMaxima version 19.02.0-DevelopmentSnapshot ] */
+/* [wxMaxima: title   start ]
+pdefourier: A Maxima package to study Fourier series
+and partial differential equations
+   [wxMaxima: title   end   ] */
+
+
+/* [wxMaxima: comment start ]
+José Antonio Vallejo
+Faculty of Sciences
+State University of San Luis Potosí (México)
+email: jvallejo@fc.uaslp.mx
+URL hhtp://galia.fc.uaslp.mx/~jvallejo
+
+Emmanuel Roque
+Faculty of Sciences
+State University of San Luis Potosí (México)
+email: emmanuelroquej@protonmail.ch
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: comment start ]
+Abstract: Fourier Analysis provides a set of techniques for solving partial differential
+equations (PDEs) in several contexts: bounded and unbounded domains, with mixed
+conditions, purely initial conditions, etc. In the bounded domain case, the basic idea
+is to apply the separation of variables method (in the unbounded case, it is the Fourier
+transform), which leads to a well-defined algorithm for developing the solution in a
+Fourier series. Precisely, the fact that there exists an algorithm for computing the solution
+makes this kind of problem tractable with a Computer Algebra System (CAS), and here
+we introduce a Maxima package (called 'fourier') to solve it. It is still work in
+progress, and lots of things remain to be implemented. But in its actual stage it is already
+usable and useful in teaching some university-level courses, so here it is.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: section start ]
+Preliminaries
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: comment start ]
+First of all, we load the package (assuming that the file 'pdefourier.mac' has been
+copied to /usr/share/maxima/5.37.3/share/contrib or something similar, depending
+on the version and the operating system. In Windows probably it will be the location
+c:\Program files (x86)\Maxima-sbcl-5.37.3/share/maxima/5.37.3/share/contrib).
+Another possibility is to keep a copy in the working directory.
+It automatically calls other packages (such as draw). In the command below, type
+"nul" instead of "/dev/null" when working on a Windows machine:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(all);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+with_stdout("/dev/null",load("../nopoles/pdefourier.mac"))$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+This is just to avoid some annoying warnings...
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+ratprint:false$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+The following rules will be useful later on, when simplifying the expression of the Fourier
+coefficients for some functions:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+defrule(rul1,sin((%pi*n)/2),(-1)^(floor(n/2))*(1 - (-1)^n)/2);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+defrule(rul2,cos((%pi*n)/2),(-1)^(floor(n/2))*(1 + (-1)^n)/2);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Indeed, notice that
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+makelist((-1)^(floor(n/2))*(1 - (-1)^n)/2,n,0,9);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+and
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+makelist((-1)^(floor(n/2))*(1 + (-1)^n)/2,n,0,9);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: section start ]
+The functions 'paritycheck' and 'pw2list'
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: comment start ]
+The package contains 'paritycheck', a command to determine the parity of  expressions. 
+When the input expression is a piecewise-defined function, it is compulsory that it be
+written either as
+
+if x>=a_0 and x<=a_1 then expr1 elseif  ...  elseif x>a_n and x<=a_{n+1} then expr_{n+1}
+
+(in the case of bounded domains) or as
+
+if x<=a_0 then expr0 elseif x>a0 and x<=a1 then expr1 ... elseif x>=a_n then exprn
+
+(in the unbounded case).
+
+Important notes:
+-In all cases it is expected that a_i<a_{i+1}. Writing (x<=7 and x>=6) instead of
+   (x>=6 and x<=7) won't work for some technical reasons.
+-Use of 'else' is unsupported, the expression following 'else' is ignored! Use 'elseif' instead.
+-The logical operator "or" is currently unsupported, will be treated as 'and'.
+-The 'paritycheck' function will not check whether the intervals are disjoint or not.
+
+This 'paritycheck' function is essential, as it simplifies the computation of the Fourier
+coefficients when there are symmetries.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: comment start ]
+Let us define several functions that will be used later as examples, and test the
+'paritycheck' command on them.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+absolute(x):=if (x<=0) then -x elseif (x>0) then x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d(absolute(x),[x,-1,1],[ylabel,"absolute value"]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+paritycheck(absolute(x),x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+heaviside(x):=if (x<0) then 0 elseif (0<=x) then 1$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d(heaviside(x),[x,-1,1],[y,-0.1,1.1],[ylabel,"step function"]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+paritycheck(heaviside(x),x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+square(x):=if (x<-%pi) then 0 elseif (-%pi<=x and x<=%pi) then 1 elseif (x>%pi) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d(square(x),[x,-4,4],[y,-0.1,1.1],[ylabel,"square pulse"]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+paritycheck(square(x),x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+The square pulse with compact support:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+square0(x):=if (-2<=x and x<-1) then 0 elseif (-1<=x and x<=1) then 1 elseif (1<x and x<=2) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d(square0(x),[x,-2,2],[y,-0.1,1.1],[ylabel,"square pulse"]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+paritycheck(square0(x),x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+More complicated functions. Notice that some have compact support while others do not.
+We will use them later for illustration purposes.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f(x):=if (x<-3) then 0 elseif (-3<=x and x<=-2) then 1 elseif (-2<x and x<=-1) then 0 
+elseif (-1<x and x<=1) then -x elseif (1<x and x<=2) then 0
+elseif (2<x and x<3) then -1 elseif (x>=3) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d(f(x),[x,-4,4],[y,-1.1,1.1]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+paritycheck(f(x),x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g(x):=if (x<-1/2) then x+1 
+ elseif (x>=-1/2 and x<-1/4) then 0
+  elseif (x>=-1/4 and x<1/4) then abs(x)
+  elseif (x>=1/4 and x<1/2) then 0
+   elseif (x>=1/2) then 1-x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d(g(x),[x,-2,2]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+paritycheck(g(x),x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h(x):=if (x<-3) then 1 elseif (-3<=x and x<=-2) then 0 elseif (-2<x and x<-1) then 1 
+elseif (-1<=x and x<=0) then 0 elseif (0<x and x<1) then 1 elseif (1<=x and x<=2) then 0
+elseif (2<x and x<3) then 1 elseif (x>=3) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d(h(x),[x,-4,4],[y,-0.1,1.1]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+paritycheck(h(x),x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+k(x):=if (x<-3) then 1 elseif (-3<=x and x<=-2) then 0 elseif (-2<x and x<-1) then 1 
+elseif (-1<=x and x<=1) then 0.5  elseif (1<x and x<=2) then 1
+elseif (2<x and x<3) then 0 elseif (x>=3) then 1$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d(k(x),[x,-4,4],[y,-0.1,1.1]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+paritycheck(k(x),x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+u(x):=if (x>=-1 and x<-1/2) then -1-x 
+ elseif (x>=-1/2 and x<1/2) then x^3 
+   elseif (x>=1/2 and x<=1) then 1-x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d(u(x),[x,-1,1]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+paritycheck(u(x),x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+v(x):=if (-%pi<=x and x<0) then x^2 elseif (0<=x and x<=%pi) then sin(3*x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d(v(x),[x,-%pi,%pi],[ylabel,"v(x)"]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+paritycheck(v(x),x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+For the sake of completeness, let us give some examples of expressions not piecewise-defined.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+paritycheck(sin(4*theta),theta);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+paritycheck(x^2,x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+paritycheck(x^2-x+1,x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Internally, when the input expression is piecewise-defined, 'paritycheck' calls another function,
+'pw2list', to extract the pieces and work with a list representation of the expression. 
+Thus,  the expression
+
+if x>=a_0 and x<=a_1 then expr1 elseif x>a_1 and x<= a_2 then expr2 ... elseif x>a_n and x<=a_{n+1} then expr_{n+1}
+
+would translate to
+
+[[[a_0,a_1],expr1],[[a_1,a_2],expr2],...,[[a_n,a_{n+1}],expr_{n+1}]]
+
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: comment start ]
+Let's see how it works with h(x) and v(x) as examples:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fundef(h);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+pw2list(h(x),x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fundef(v);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+pw2list(v(x),x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Working with piecewise functions using this approach can be very useful for many different
+purposes, such as computing their integral, as we will see later on this document.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: section start ]
+The Fourier coefficients
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: comment start ]
+The package 'pdefourier' provides a function to compute the Fourier coefficients of a
+piecewise defined function. It uses 'paritycheck' to simplify the calculations (if the
+function is even, then all the coefficients b_n=0, etc.) The output has the format of a
+list
+                                            [[a_0/2,a_n,b_n],[singular values]]
+
+where a_n are the Fourier cosine coefficients and b_n the Fourier sine coefficients. 
+The singular values list, might be empty or not, depending on the input expression. For
+example, if f(x)=sin(3*x)+cos(7*x) in the interval [-%pi,%pi], then, a_n=0 except when n=7,
+and b_n=0 except when n=3. When such special cases appear, the singular values list will
+contain the corresponding values of n and a_n, b_n, as they must be computed separately.
+
+The function fouriercoeff currently searches for singular values that appear in trigonometric
+expressions involving sines and cosines whose arguments are integer multiples of the
+fundamental frequencies, and in the product of polynomials with sines and cosines with such
+arguments.
+
+Notice that the computation of Fourier coefficients can be done for any interval [a,b], with the
+only restriction that it must be bounded. The syntax is as follows:
+
+                                fouriercoeff(expression, variable, p), where p=(b-a)/2.
+
+For example, if a function is defined in an interval [-L,L], then p=L. By default, if an expression
+is not piecewise-defined, 'fouriercoeff' assumes that it is defined in [-%pi,%pi].
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: comment start ]
+First, a couple of examples of non piecewise-defined expressions:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(sin(3*x)+cos(7*x),x,%pi);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(x^2+1,x,1);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Now let's see how it works with piecewise defined expressions
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+absolute0(x):=if ( x>=-1 and x<=0) then -x elseif (x>0 and x<=1) then x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(absolute0(x),x,1);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+syntactic_factor(%);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+heaviside0(x):=if (  x>=-1 and x<0 ) then 0 elseif (0<=x and x<=1) then 1$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(heaviside0(x),x,1);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+For some reason, Maxima does not simplify factors like sin(n*%pi/2) even if n is declared
+to be an integer, but this is a minor issue that can be easily corrected 'by hand', using
+the rules defined above. Other rules can be defined by the user, following the same pattern.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(square0(x),x,2);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+apply1(%,rul1);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f0(x):=if (x>=-4 and x<-3 ) then 0 elseif (-3<=x and x<=-2) then 1 elseif (-2<x and x<-1) then 0 
+elseif (-1<=x and x<=1) then -x elseif (1<=x and x<=2) then 0
+elseif (2<x and x<3) then -1 elseif (x>=3 and x<=4) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(f0(x),x,4);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+apply1(%,rul2);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g0(x):=if (x>=-1 and x<-1/2  ) then x+1 
+ elseif (x>=-1/2 and x<-1/4) then 0
+  elseif (x>=-1/4 and x<=0) then -x
+elseif (x>=0 and x<=1/4) then x
+  elseif (x>=1/4 and x<1/2) then 0
+   elseif (x>=1/2 and x<=1) then 1-x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(g0(x),x,1);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+apply1(%,rul1,rul2);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h0(x):=if (x>=-4 and x<-3 ) then 1 elseif (-3<=x and x<=-2) then 0 elseif (-2<x and x<-1) then 1 
+elseif (-1<=x and x<=0) then 0 elseif (0<x and x<1) then 1 elseif (1<=x and x<=2) then 0
+elseif (2<x and x<3) then 1 elseif (x>=3 and x<=4) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(h0(x),x,4);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+apply1(%,rul1,rul2);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+k0(x):=if (x>=-4 and x<-3) then 1 elseif (-3<=x and x<=-2) then 0 elseif (-2<x and x<-1) then 1 
+elseif (-1<=x and x<=1) then 0.5  elseif (1<=x and x<=2) then 1
+elseif (2<x and x<3) then 0 elseif (x>=3 and x<=4) then 1$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(k0(x),x,4);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+apply1(%,rul1,rul2);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(u(x),x,1);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+apply1(%,rul1,rul2);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Further simplification can be achieved by separating even and odd-order coefficients. Taking as
+an example the last expression, we start by declaring:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+declare(s,integer)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+The even-order coeffcients b_2s:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+subst(n=2*s,%th(2));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+syntactic_factor(%);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+And the odd-order ones:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+subst(n=2*s-1,%th(4));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+syntactic_factor(%);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Another example of this kind of simplification
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(v(x),x,%pi);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+subst(n=2*s,%);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+subst(n=2*s-1,%th(2));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Once we are finished with the auxiliary variable s, we can unbind it
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+remove(s,integer);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Next, we consider examples with arbitrary intervals (not necessarily of the form [-L,L]).
+When working with "symbolic" intervals, it is important to declare its endpoints
+as constants, otherwise, 'fouriercoeff' might not work as expected or return an error.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+declare(L,real);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+declare(L,constant);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(L>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f1(x):=if (0<=x and x<L) then A elseif (L<=x and x<=2*L) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+syntactic_factor(fouriercoeff(f1(x),x,L));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+forget(L>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+remove(L,real);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+remove(L,constant);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Here is another example:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f2(x):=if (0<=x and x<=1) then x elseif (1<x and x<=2) then 1 elseif (2<x and x<=3) then 3-x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Remember that in an interval [a,b], the value of p is (b-a)/2! 
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+syntactic_factor(fouriercoeff(f2(x),x,3/2));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+When a#0 or a#-b, the function must be defined in the 'if ... elseif ...' format, as in the
+next example:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+tst(x):= if (3<=x and x<=4) then x^2$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(tst(x),x,1/2);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Notice that in this case, the trigonometric factors will have the form cos(2n %pi x) and
+sin(2n %pi x).
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: section start ]
+The Fourier series
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: comment start ]
+There are two possibilities for computing the Fourier series of a functio in 'pdefourier'.
+For those cases where we have already computed some Fourier coefficients with
+'fouriercoeff', there is the function 'fouriercoeff_expand'. There is also the command
+'fourier_series', which works on user-defined functions or expressions, and admits a
+parameter 'N'  that can take any integer value N>=1 and determines the order of the
+truncated Fourier series. If N=inf, then the function will output the whole Fourier series
+in symbolic form, as an infinite sum.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: comment start ]
+First, an example using 'fouriercoeff_expand', to see how it works:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(f2(x),x,3/2);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff_expand(%,x,3/2,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+In the following examples, we construct several Fourier series and draw them side
+by side with the original functions (original functions in blue, Fourier approximations in red).
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+series1:fourier_series(absolute0(x),x,1,10);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([absolute0(x),series1],[x,-1,1],[legend,false]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+The complete Fourier series for this example can be obtained as follows:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fourier_series(absolute0(x),x,1,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+declare(s,integer)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+In this particular case, only the odd-order coefficients survive. However, with the direct
+substitution n=2s-1, the labels of the terms in the series become a mess. This is something
+to be corrected in future versions.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+subst(n=2*s-1,%th(2));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+This is the same result obtained in Stewart's Calculus, see page 7 in
+http://www.stewartcalculus.com/data/CALCULUS%20Concepts%20and%20Contexts/upfiles/3c3-FourierSeries_Stu.pdf
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+remove(s,integer)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Let us see more examples of Fourier series, compared to the function they come from.
+The Fourier series in some examples are long and ugly, so we suppress the output with
+the aid of the dollar sign '$' at the end of the command (surely you have already noticed
+its use earlier in the document):
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+series2:fourier_series(heaviside0(x),x,1,10);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([heaviside0(x),series2],[x,-1,1],[legend,false]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+series3:fourier_series(square0(x),x,2,10);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([square0(x),series3],[x,-2,2],[legend,false]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+series4:fourier_series(f0(x),x,4,15)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([f0(x),series4],[x,-4,4],[legend,false]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+series5:fourier_series(g0(x),x,1,15)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([g0(x),series5],[x,-1,1],[legend,false]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+series6:fourier_series(h0(x),x,4,15);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([h0(x),series6],[x,-4,4],[legend,false]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+series7:fourier_series(k0(x),x,4,15)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([k0(x),series7],[x,-4,4],[legend,false]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+series8:fourier_series(u(x),x,1,15)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([u(x),series8],[x,-1,1],[legend,false]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+series9:fourier_series(v(x),x,%pi,15)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([v(x),series9],[x,-%pi,%pi],[legend,false]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+The case of arbitrary intervals (not necessarily of the form [-L,L]):
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+series11:fourier_series(f2(x),x,3/2,3);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([f2(x),series11],[x,0,3],[legend,false]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Here is (half of) Exercise 8.16 in D. Richards "Advanced Mathematical Methods with Maple": 
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(x^2,x,%pi);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Now, let's do an example that shows how the package handles the series of functions
+with singular values in their coefficients.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(x^2*cos(4*x),x,%pi);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fourier_series(x^2*cos(4*x),x,%pi,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+As we can see, 'fourier_series' reads the list of singular values and separates those terms from the series.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+series12:fourier_series(x^2*cos(4*x),x,%pi,8)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([x^2*cos(4*x),series12],[x,-%pi,%pi],[legend,false]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+An example from the Maxima list:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+ffo(t):=if (-%pi<=t and t<=0) then 3*t+5 elseif (0<t and t<=%pi) then 2*%pi-3*t-9;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(ffo(t),t,%pi);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+seri6:fourier_series(ffo(t),t,%pi,6);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([ffo(t),seri6],[t,-%pi,%pi],[legend,false]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: section start ]
+Troubleshooting I
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: comment start ]
+Here we face a problem: the Fourier coefficients contain the function 'gamma_incomplete',
+which introduces complex numbers. They should dissapear, because the final result must
+be real, but due to rounding errors some of them survive with a very small absolute value.
+This is enough to prevent 'plot2d' from plotting the graphics (This example comes from a web
+page whose URL we don't remember. If you are the owner of that page and are reading this,
+please let us know to get proper recognition):
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+d(x):=if ( x>=-%pi and x<=0 ) then 1 elseif (0<x and x<=1/2) then 2 elseif (1/2<x and x<=%pi) then 1/x;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+series10:fourier_series(d(x),x,%pi,15)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+expand(series10),numer;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+To kill these terms, we can employ a function 'chop' (provided in the package) analogous to
+the 'Chop[]' encountered in Mathematica. By default, 'chop' discards terms of absolute value
+less than 10^(-12). An additional argument can be supplied, as in 'chop(expr,exponent)', to
+chop those terms whose absolute value is less that 10^(-exponent). Then everything goes fine:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+chop(%);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([d(x),%],[x,-%pi,%pi],[y,0.2,2.1],[legend,false]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: section start ]
+Animations
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: comment start ]
+Let us see the approximation process dynamically (this requires wxMaxima):
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxanimate(n,15,[u(x),fourier_series(u(x),x,1,n)],[x,-1,1],[legend,false]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: section start ]
+Frequency spectrum and harmonics
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: comment start ]
+Frequency analysis is very useful in Engineering applications (but also in Physics). This technique
+requires that the Fourier series be first re-expressed in the following form: by using the identity
+                                        a*cos(w)+b*sin(w)=r*cos(w-u)
+where the modulus and the phase shift are given, respectively, by r=sqrt(a^2+b^2) and
+u=atan(b/a), we can rewrite the terms summed in the series as the so-called harmonics:
+                                                c[n]*cos(n*w*x-u[n])
+In the theory of sound, the first harmonic (corresponding to n=1) is called the fundamental
+harmonic. The remaining ones are called overtones. The coefficients c[n] are the harmonic
+amplitudes, and |c[n]| is a measure of the relative importance of the n-th harmonic in a
+given signal (sound). 
+
+The frequency analysis is done in 'pdefourier' with the aid of the function
+'fourier_freq'. The function 'fourier_harm' returns a list with the first n harmonics of a given function,
+with the syntax
+                                        fourier_harm(function(variable),variable,p,n)
+where p=(b-a)/2, and [a,b] the interval of definition of the function, while 'fourier_freq_list'
+(with the same syntax) gives the list of the amplitudes.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fourier_harm(square0(x),x,2,5);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fourier_freq_list(square0(x),x,2,5);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f3(x):=if (-2<x and x<2) then x/2+1 else 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fourier_harm(f3(x),x,2,5);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+For smooth or mildly non-smooth functions, the Fourier series converge very fast, and so the first
+few terms  are enough to get a good approximation. This is reflected in the relative weight of each
+harmonic (fastly decreasing):
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxfourier_freq(absolute0(x),x,1,10);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+For very discontinous functions, the amplitude of harmonics does not decrease that fast
+(or do not decrease at all):
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxfourier_freq(f0(x),x,4,10);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Another example:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxfourier_freq(f3(x),x,2,10);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Adding terms to the Fourier series reflects in the harmonic content of the signal:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+ramp(x):=if (-5<=x and x<=-1) then (x+3)/2 else 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+define(ramp_series(x,n),fourier_series(ramp(x),x,2,n))$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+with_slider_draw(k,makelist(j,j,1,10),
+  dimensions=[900,450],
+  xrange=[-5.25,10.25],
+  yrange_secondary=[-1.45,1.45],
+  axis_top=false,
+  axis_left=false,
+  xtics=none,
+  user_preamble=["set y2label tc rgb 'blue'","set ylabel tc rgb 'red'","set grid y2"],
+  yaxis=false,
+  ytics=none,
+  yaxis_secondary=true,
+  ylabel_secondary="|c_n|",
+  ytics_secondary=auto,
+    color=blue,
+    label(["w(n)=nw_0",5,-0.25]),
+    points_joined=impulses,line_width=4,color=blue,
+    points(fourier_freq_list(ramp(x),x,2,k)),
+    line_width=1,
+    color=violet,
+    key="ramp(x)",key_pos=top_left,
+    explicit(ramp(x),x,-5,-1),
+    line_width=2,
+    key="Fourier series",
+    color=red,explicit(ramp_series(x,k),x,-5,-1)  
+),wxplot_size=[900,450];
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: section start ]
+Fourier cosine and sine series
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: comment start ]
+The functions 'fouriercos_series' and 'fouriersin_series' are self-explanatory.
+The package also includes 'fouriersincoeff', 'fouriercoscoeff', 'fouriersincoeff_expand'
+and 'fouriercoscoeff_expand'
+Here we solve Example 3 in 
+http://tutorial.math.lamar.edu/Classes/DE/FourierCosineSeries.aspx. 
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+declare(L,real);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(L>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+declare(L,constant);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f(x):=if (0<=x and x<=L) then L-x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercos_series(f(x),x,L,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Example 4 in http://tutorial.math.lamar.edu/Classes/DE/FourierCosineSeries.aspx
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g(x):=if (0<=x and x<=L) then x^3$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+syntactic_factor(fouriercoscoeff(g(x),x,L));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Example 5 in http://tutorial.math.lamar.edu/Classes/DE/FourierCosineSeries.aspx
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h(x):=if (0<=x and x<=L/2) then L/2 elseif (L/2<=x and x<=L) then x-L/2$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoscoeff(h(x),x,L);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+apply1(%,rul1,rul2);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Now for sines. Example 4 in http://tutorial.math.lamar.edu/Classes/DE/FourierSineSeries.aspx:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+k(x):=if (0<=x and x<=L) then 1+x^2$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriersin_series(k(x),x,L,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Example 5 in http://tutorial.math.lamar.edu/Classes/DE/FourierSineSeries.aspx
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriersincoeff(h(x),x,L);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+apply1(%,rul1,rul2);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+forget(L>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+remove(L,real);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+remove(L,constant);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Example in http://www.sosmath.com/fourier/fourier2/fourier2.html
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+l(x):=if (0<=x and x<=%pi) then cos(x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriersincoeff(l(x),x,%pi);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: section start ]
+Other tools provided by the package
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: comment start ]
+We can disassemble a piecewise-defined function with 'pw2list':
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g(x):=if (-1<=x and x<-1/2) then x+1 
+ elseif (x>=-1/2 and x<-1/4) then 0
+  elseif (x>=-1/4 and x<1/4) then abs(x)
+  elseif (x>=1/4 and x<1/2) then 0
+   elseif (x>=1/2 and x<=1) then 1-x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+partsg:pw2list(g(x),x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Then, 'Integratepw' allows us to compute the integral of a piecewise-defined function written in
+the list format returned by 'pw2list'
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+pwintegrate(partsg,x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+'searchpoles' looks for singular values for n in the Fourier development of an expression:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+searchpoles(3*x^4*sin(x)^5+x^2*cos(4*x),x,%pi);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Indeed, notice that
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+expand(trigrat(3*x^4*sin(x)^5+x^2*cos(4*x)));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Let us see some examples:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+w(x):=if (-1<=x and x<-1/2) then sin(2*x)+1 
+ elseif (x>=-1/2 and x<-1/4) then 0
+  elseif (x>=-1/4 and x<1/4) then cos(4*x)^3
+  elseif (x>=1/4 and x<1/2) then 0
+   elseif (x>=1/2 and x<=1) then 1-x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+searchpoles(w(x),x,1);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+w2(x):=if (-1<=x and x<-1/2) then sin(2*%pi*x)+1 
+ elseif (x>=-1/2 and x<-1/4) then 0
+  elseif (x>=-1/4 and x<1/4) then cos(4*%pi*x)^3
+  elseif (x>=1/4 and x<1/2) then 0
+   elseif (x>=1/2 and x<=1) then 1-x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+searchpoles(w2(x),x,1);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Notice that poles in the Fourier development will appear when the argument of the sine
+or cosine functions is a multiple of the fundamental frequency. This is the reason for the
+name of the function 'searchpoles'.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: comment start ]
+If we have already computed the fourier coefficients, 'real2complex_fcoeff' writes the
+coefficients in the complex form
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriercoeff(x^3+x^2,x,1);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+real2complex_fcoeff(%);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+And of course, we can use an special expansion for the complex coefficients
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+cfouriercoeff_expand(%,x,1,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: section start ]
+The 1D heat equation on bounded domains with vanishing boundary conditions
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: comment start ]
+In this section we consider the heat equation with vanishing boundary conditions.
+Q(x,t) is the source and F(x) the initial distribution of temperatures, on [0,L].
+The syntax is as follows
+
+fourier_heat(source expr, initial dist expr, variable, L, %kappa coef, N)
+
+where N is the upper limit of summation, it can be an integer >=1 or inf.
+It is always assumed that t is the time variable.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: comment start ]
+Example 6.4.1(a) in Myint-U (pg 144):
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+declare(L,real);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+declare(L,constant);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(L>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(t>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x):=if (0<=x and x<=L) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(x):=if (0<=x and x<=L) then x*(L-x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fourier_heatcoeff(Q(x),F(x),x,t,L,%kappa);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fourier_heat(Q(x),F(x),x,t,L,%kappa,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+forget(L>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+remove(L,real);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+remove(L,constant);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Exercise 15, chapter 6, of Myint-U (pg. 165):
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+R(x):=if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+G(x):=if (0<=x and x<=1) then x^2*(1-x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fourier_heat(R(x),G(x),x,t,1,%kappa,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+define(approx1(x,t),fourier_heat(R(x),G(x),x,t,1,4,inf));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+The approximate solution at time t=0 is given by
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+approx1ini(x):=''approx1(x,0)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+approx1ini(x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Let us check the approximation at the initial time t=0 for n=5
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+define(approx2(x,t),fourier_heat(R(x),G(x),x,t,1,4,5))$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([G(x),approx2(x,0)],[x,0,1],[legend, "initial temperatures", "approximation"]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+We can visualize the approximation's evolution in time using the animation capabilities of the
+frontend wxMaxima. Notice that 'wxanimate_draw' requires the expression containing the
+variable x and the parameter t given in explicit displayed form. To see the animation, inside
+a wxMaxima worksheet click with the right button on the plot and select 'Start Animation'.
+This example shows both the regularizing effect of the heat equation and the speed of the
+underlying diffusion process.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+define(evol(x,t),fourier_heat(R(x),G(x),x,t,1,4,5))$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxanimate_draw(t,makelist(i/100,i,0,10),
+    color=red,key="evolution",
+    explicit(evol(x,t),x,0,1),
+    color=blue,key="initial temperatures",
+    explicit(G(x),x,0,1));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Another example (Myint-U 15.b):
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+S(x):=if (0<=x and x<=%pi) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+H(x):=if (0<=x and x<=%pi) then (sin(x))^2$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fourier_heat(S(x),H(x),x,t,%pi,%kappa,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Still another one (cfr. Bellido, pgs 103-104).
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+U(x):=if (0<=x and x<=%pi) then sin(x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+T(x):=if (0<=x and x<=%pi) then x/%pi-1$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fourier_heat(U(x),T(x),x,t,%pi,1,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Of course, fourier_heat is capable of handling time-dependent sources
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fourier_heat(x*t,sin(4*x),x,t,%pi,%kappa,inf);
+/* [wxMaxima: input   end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
+
+
+/* [wxMaxima: comment start ]
+If we fix %kappa=3/2, we can animate the evolution of an approximation.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+define(evol2(x,t),fourier_heat(x*t,sin(4*x),x,t,%pi,3/2,8))$
+/* [wxMaxima: input   end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxanimate_draw(t,makelist(i/100,i,0,15),
+    color=red,key="evolution",
+    explicit(evol2(x,t),x,0,%pi),
+    color=blue,key="initial temperatures",
+    explicit(sin(4*x),x,0,%pi));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+forget(t>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: section start ]
+The 1D wave equation on bounded domains with vanishing boundary conditions
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: comment start ]
+Again we deal with vanishing boundary conditions in an interval [0,L], and Q is the driving term. 
+The functions p(x) and r(x) are the initial conditions for the wave profile and its time derivative,
+respectively. The syntax is as follows:
+
+fourier_wave(Q(var,t),p(var), r(var), var, L, propagation speed, N)
+
+where N is the order of the Fourier approximation, which can be an integer >=1 or inf.
+It is always assumed that t is the time variable.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: comment start ]
+We consider the propagation speed as a=1 (Myint-U Example 6.7.2)
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(F>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(t>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x,t):=if (0<=x and x<=1) then F$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+p(x):=if (0<=x and x<=1) then x*(1-x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+r(x):=if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fourier_wave(Q(x,t),p(x),r(x),x,t,1,1,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+forget(t>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+forget(F>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+facts();
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Let us see a specific example:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(t>0)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+R(x,t):=if (0<=x and x<=1) then 1$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+define(wave_evol(x,t),fourier_wave(R(x,t),p(x),r(x),x,t,1,1,5))$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxanimate_draw(t,makelist(i/10,i,0,20),
+    color=red,key="evolution",
+    explicit(wave_evol(x,t),x,0,1),
+    color=blue,key="initial profile",
+    explicit(p(x),x,0,1));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Plucked string without driving term:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+p(x):=if (0<=x and x<=1/2) then x elseif (1/2<x and x<=1) then 1-x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+S(x,t):=if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+define(wave_evol(x,t),fourier_wave(S(x,t),p(x),r(x),x,t,1,1,5))$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxanimate_draw(t,makelist(i/10,i,0,20),
+    color=red,key="evolution",yrange=[-0.5,0.5],
+    explicit(wave_evol(x,t),x,0,1),
+    color=blue,key="initial profile",
+    explicit(p(x),x,0,1));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+forget(t>0)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+facts();
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: section start ]
+Non-vanishing boundary conditions
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: comment start ]
+Having these functions, which handle problems with vanishing boundary conditions, it is not
+difficult to deal with non-vanishing ones.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: subsect start ]
+Heat equation
+   [wxMaxima: subsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+Again, suppose that Q(x,t) is the source of heat, f(x) is the initial temperature profile, and
+u(0,t)=h_1(t), u(L,t)=h_2(t) are the boundary conditions (for a bar occupying [0,L]).
+Defining the function v=h_1 +(h_2-h_1)x/L, it turns out that
+
+            z(x,t)=u(x,t)-v(x,t)
+
+satisfies a problem with homogeneous boundary conditions, source
+
+            Q-h'_1-(h'_2-h'_1)x/L
+
+and initial profile
+
+            f(x)-h_1(0)-(h_2(0)-h_1(0))x/L
+
+Thus, we can use the previous functions to solve this kind of problem. The necessary steps
+can be automated with the 'dirichlet_heat' command, as shown below.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(t>0)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x,t):=if (0<=x and x<=%pi) then sin(x)+x/%pi+exp(-t)*(x/%pi -1)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(x):=if (0<=x and x<=%pi) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h1(t):=exp(-t)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h2(t):=t$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+%kappa:1$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+dirichlet_heat(Q(x,t),F(x),h1(t),h2(t),x,t,%pi,%kappa,inf);
+/* [wxMaxima: input   end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(%kappa);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+forget(t>0)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsect start ]
+Wave equation
+   [wxMaxima: subsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+The same method works fot the wave equation. Here we just show some examples, solving
+the wave equation u_tt -c^2 u_xx=P(x,t) in the interval [0,L] with initial conditions
+
+u(x,0)=G(x)
+u_t(x,0)=H(x)
+
+and the boundary conditions
+
+u(0,t)=psi1(t)
+u(L,t)=psi2(t)
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(t>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+P(x,t):=if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+G(x):=if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+H(x):=if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+psi1(t):=sin(t)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+psi2(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+dirichlet_wave(P(x,t),G(x),H(x),psi1(t),psi2(t),x,t,1,1,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+forget(t>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Another one:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(t>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+P(x,t):=if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+G(x):=if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+H(x):=if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+psi1(t):=t^2$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+psi2(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+dirichlet_wave(P(x,t),G(x),H(x),psi1(t),psi2(t),x,t,1,c,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+forget(t>0);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: section start ]
+1D Neumann problems 
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: subsect start ]
+The heat equation
+   [wxMaxima: subsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+The Neumann problem for the heat equation is defined as
+
+                        u_t = ku_xx + Q(x,t)  ,  x in [0,L], t in [0, inf[ 
+                        u(x,0)=F(x)
+                        u_x(0,t)=h_1(t)
+                        u_x(L,t)=h_2(t)
+
+It can be solved with the function neumann_heat, whose syntax is
+
+        neumann_heat(Q,F,h1,h2,x,t,k,L,ord)
+
+where ord determines the order of the Fourier series (if ord=inf, then
+the symbolic Fourier series for the solution is given). Let us see some
+examples.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: comment start ]
+The first case deals with insulated ends:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x,t):=if (0<=x and x<=1) then t$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(x):=if (0<=x and x<=1) then 1+3*cos(4*%pi*x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h1(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h2(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+neumann_heat(Q(x,t),F(x),h1(t),h2(t),x,t,1,1,inf);
+/* [wxMaxima: input   end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
+
+
+/* [wxMaxima: comment start ]
+In the second example, there is a time-linear flux of heat at the right end:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(Q,F,h1,h2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(L,S,f,k1,k2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+S(x,t):=if (0<x and x<=%pi) then -x*t$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f(x):=if (0<=x and x<=%pi) then sin(5*x/2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+k1(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+k2(t):=t$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(t>0)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+neumann_heat(S(x,t),f(x),k1(t),k2(t),x,t,1,%pi,inf);
+/* [wxMaxima: input   end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
+
+
+/* [wxMaxima: input   start ] */
+define(funmake(u,[x,t]),neumann_heat(S(x,t),f(x),k1(t),k2(t),x,t,1,%pi,10))$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxdraw3d(
+    dimensions = [600,500],
+    color=orange,
+    explicit(u(x,t),x,0,%pi,t,0,2),
+    color=blue,
+    line_width = 3,
+    parametric(x,0,u(x,0),x,0,%pi)
+),wxplot_size=[600,500];
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsect start ]
+The wave equation
+   [wxMaxima: subsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+Example 18.1 in http://web.math.ucsb.edu/~grigoryan/124A/lecs/lec18.pdf:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+S(x,t):=if (0<=x and x<=%pi) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+phi(x):=if (0<=x and x<=%pi) then 3*cos(x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+psi(x):=if (0<=x and x<=%pi) then 1-cos(4*x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+b1(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+b2(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+neumann_wave(S(x,t),phi(x),psi(x),b1(t),b2(t),x,t,%pi,2,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(S,phi,psi,b1,b2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+An example from http://www.math.psu.edu/wysocki/M412/Notes412_10.pdf (example 9.14)
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+T(x,t):=if (0<=x and x<=%pi) then (1-x)*cos(t)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f(x):=if (0<=x and x<=%pi) then x^2/(2*%pi)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g(x):=if (0<=x and x<=%pi) then cos(3*x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+bb1(t):=cos(t)-1$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+bb2(t):=cos(t)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+neumann_wave(T(x,t),f(x),g(x),bb1(t),bb2(t),x,t,%pi,2,inf);
+/* [wxMaxima: input   end   ] */
+/* [wxMaxima: answer  start ] */
+n;
+/* [wxMaxima: answer  end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(T,f,g,bb1,bb2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: section start ]
+The Laplace equation
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: comment start ]
+We now confront the problem of finding solutions to Laplace's equation by using Fourier methods.
+First of all, notice that for problems with circular symmetry, the use of polar coordinates (r,theta)
+is much more convenient. For problems in a rectangular domain, we can still use the cartesian (x,y)
+coordinates (the names of the coordinates are irrelevant, other set such as (u,v) can be used as
+well).
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: subsect start ]
+The equation on a rectangle
+   [wxMaxima: subsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+We will work in the region R=[0,a]x[0,b] (the general case can be handled by a translation). 
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: subsubsect start ]
+Dirichlet problem
+   [wxMaxima: subsubsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+Let us consider the Dirichlet problem first.
+The equations to be solved are Delta u=0 in ]0,a[ x]0,b[ and
+(A) u(x,0)=f1(x)
+(B) u(x,b)=f2(x)
+(C) u(0,y)=g1(y)
+(D) u(b,y)=g2(y)
+The problem can be solved by the superposition principle as a sum u=uA+uB+uC+uD, where
+each ui is the solution to Delta u=0 in ]0,a[ x]0,b[ and homogeneous boundary conditions except
+condition (i).
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f1(x):= if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f2(x):= if (0<=x and x<=1) then T*x*(1-x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g1(y):= if (0<=y and y<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g2(y):= if (0<=y and y<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+dirichlet_laplace_rectangle(1,1,f1(x),f2(x),g1(y),g2(y),x,y,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+The following example comes from 
+https://math.stackexchange.com/questions/1114098/laplaces-equation-in-rectangle-geometry
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f1(x):= if (0<=x and x<=4) then 0 elseif (4<x and x<=8) then 2$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f2(x):= if (0<=x and x<=4) then 0 elseif (4<x and x<=8) then 2$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g1(y):= if (0<=y and y<=5) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g2(y):= if (0<=y and y<=5) then 2$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+dirichlet_laplace_rectangle(8,5,f1(x),f2(x),g1(y),g2(y),x,y,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+We can somewhat `simplify' this by using our rules for cos(n*%pi/2): 
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+apply1(%,rul2);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+This looks weird, but let's see how it works...
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+expr:dirichlet_laplace_rectangle(8,5,f1(x),f2(x),g1(y),g2(y),x,y,10)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxdraw3d(view=[61,330],surface_hide = true,
+       color = orange,
+       parametric_surface(x,y,expr,x,0,8,y,0,5),
+       color = blue,
+       line_width  = 2,
+       parametric(t,0,0,t,0,4),
+       parametric(t,0,2,t,4,8),
+       parametric(t,5,0,t,0,4),
+       parametric(t,5,2,t,4,8),
+       parametric(0,t,0,t,0,5),
+       parametric(8,t,2,t,0,5)       
+)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Not so bad!
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: comment start ]
+Another graphical example
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+expr2:dirichlet_laplace_rectangle(%pi,%pi,sin(3*x),sin(3*x),0,0,x,y,10)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxdraw3d(view=[61,330],surface_hide = true,
+       color = orange,
+       parametric_surface(x,y,expr2,x,0,%pi,y,0,%pi),
+       color = blue,
+       line_width  = 2,
+    parametric(t,0,sin(3*t),t,0,%pi),
+    parametric(t,%pi,sin(3*t),t,0,%pi),
+    parametric(0,t,0,t,0,%pi),
+    parametric(%pi,t,0,t,0,%pi)
+)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsubsect start ]
+Neumann problem
+   [wxMaxima: subsubsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+The next case deals with Neumann conditions. Again, the problem is
+Delta u=0 in ]0,a[ x]0,b[ and
+(A) u_y(x,0)=f1(x)
+(B) u_y(x,b)=f2(x)
+(C) u_x(0,y)=g1(y)
+(D) u_x(b,y)=g2(y)
+However, in this case, the fact that the solution to a Neumann problem
+is determined up to an additive constant, imposes some additional conditions.
+It is necessary that
+        int(f1(x),x,0,a)+int(f2(x),x,0,a)+int(g1(y),y,0,b)+int(g2(y),y,0,b)=0
+and this condition is checked by the solver, returning an error message if it is
+not satisfied.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f1(x):= if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f2(x):= if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g1(y):= if (0<=y and y<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g2(y):= if (0<=y and y<=1) then y-1/2$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+neumann_laplace_rectangle(1,1,f1(x),f2(x),g1(y),g2(y),x,y,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsect start ]
+The equation on a disk
+   [wxMaxima: subsect end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(f,g);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Generally speaking, the solution of Laplace's equation in polar coordinates will have the form
+
+                        u(r,theta)=sum^inf_{-inf}c_n*r^|n|*exp(i*n*theta)
+
+If the equation to be solved is Delta u=0 in a disk D of radius r=a, with u|Fr(D)=f, then the coefficients
+are given by
+
+                                                    c_n=^f(n)/|a|^n
+
+where ^f(n) is the nth complex Fourier coefficient of f. The above function u(r,theta) is a solution
+of the Dirichlet problem in the sense that u(a,theta)=F(theta), where
+
+                                        | f(theta) if f is continuous at theta
+                     F(theta)=  |
+                                        | (f(theta+)+f(theta-))/2 otherwise
+
+The command 'cfouriercoeff' gives the complex Fourier coefficients:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f(theta):=if (-%pi<=theta and theta<0) then 1+theta/%pi elseif (0<=theta and theta<=%pi) then 1-theta/%pi$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+cfouriercoeff(f(theta),theta,%pi);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Take into account that the term c_0 is always displayed separately, 
+so any series running from -inf to inf will not contain the n=0 term.
+The solver provides a message recalling this fact.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+cfourier_series(f(theta),theta,%pi,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g(y):=if (-%pi<=y and y<0) then -1 elseif (0<=y and y<=%pi) then 1$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+cfourier_series(g(y),y,%pi,8);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsubsect start ]
+Dirichlet problem
+   [wxMaxima: subsubsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+The command 'dirichlet_laplace_disk' computes the solution to the Dirichlet problem. 
+The syntax is as follows: dirichlet_laplace_disk(a,f expr, var,N)
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+dirichlet_laplace_disk(1,f(theta),theta,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+expr:dirichlet_laplace_disk(1,g(theta),theta,8);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Let us see the result graphically (recall that a harmonic function does not have extrema inside the
+disk, as a consequence of the Maximum Principle):
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxdraw3d(view=[64,76],surface_hide = true,zrange=[-1.5,1.5],
+       color = orange,
+       parametric_surface(r*cos(theta),r*sin(theta),expr,r,0,1,theta,0,2*%pi),
+       line_width  = 2,
+       color = red,
+       parametric(cos(theta),sin(theta),-1,theta,-%pi,0),
+       color = blue,
+       parametric(cos(theta),sin(theta),1,theta,0,%pi)
+)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Another example:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h(theta):=sin(5*theta)^2+cos(2*theta);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+expr2:dirichlet_laplace_disk(1,h(theta),theta,10);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxdraw3d(view=[64,14],surface_hide=true,zrange=[-2,2],nticks=200,
+       color=orange,
+       parametric_surface(r*cos(theta),r*sin(theta),expr2,r,0,1,theta,0,2*%pi),
+       color = blue,
+       parametric(cos(theta),sin(theta),h(theta),theta,0,4*%pi)
+)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsubsect start ]
+Neumann problem
+   [wxMaxima: subsubsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+A small modification of the existing code can deal with Neumann conditions.
+In this case, a necessary condition for the existence of solutions is 
+                                            int(f(theta),theta,-pi,pi)=0
+(that is, the integral of f along the boundary must vanish, as in the rectangular case).
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(theta):=if (-%pi<=theta and theta<=%pi) then theta$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+neumann_laplace_disk(1,F(theta),theta,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsect start ]
+The equation on an annulus
+   [wxMaxima: subsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+The folllowing function computes the general solution of the Laplace equation
+on an annulus of radii a<b, with u(a,theta)=f(theta) and u(b,theta)=g(theta):
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+a:1$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+b:2$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f(theta):=if (-%pi<theta and theta<%pi) then (cos(theta))^2$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g(theta):=if (-%pi<theta and theta<%pi) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+expr:dirichlet_laplace_annulus(a,b,f(theta),g(theta),theta,4);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxdraw3d(view=[60,19],surface_hide = true,zrange=[-1.5,1.5],
+       color = orange,
+       parametric_surface(r*cos(theta),r*sin(theta),expr,r,1,2,theta,0,2*%pi),
+        line_width  = 2,
+       color = red,
+       parametric(a*cos(theta),a*sin(theta),g(theta),theta,-%pi,%pi),
+       color = blue,
+       parametric(b*cos(theta),b*sin(theta),f(theta),theta,-%pi,%pi)
+)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Another example:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+expr2:dirichlet_laplace_annulus(a,b,cos(theta)^2,sin(3*theta),theta,6);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxdraw3d(view=[60,19],surface_hide = true,zrange=[-1.5,1.5],
+       color = orange,
+       parametric_surface(r*cos(theta),r*sin(theta),expr2,r,1,2,theta,0,2*%pi),
+        line_width  = 2,
+       color = red,
+       parametric(a*cos(theta),a*sin(theta),sin(3*theta),theta,-%pi,%pi),
+       color = blue,
+       parametric(b*cos(theta),b*sin(theta),cos(theta)^2,theta,-%pi,%pi)
+)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsect start ]
+The equation on a wedge
+   [wxMaxima: subsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+Next we consider a wedge D={0<r<R,0<theta<a} (the general case is obtained by a rotation),
+with 0<a<2 pi. 
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: subsubsect start ]
+Dirichlet problem
+   [wxMaxima: subsubsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+The first case to be solved is Delta u=0 in int(D) with Dirichlet conditions:
+
+                                            u(r,0)=0=u(r,a)
+                                            u(R,theta)=f(theta)
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+ur(theta):= if (0<=theta and theta<=%pi/2) then cos(4*theta)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+dirichlet_laplace_wedge(R,%pi/2,ur(theta),theta,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+expr:dirichlet_laplace_wedge(1,%pi/2,ur(theta),theta,15)$;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxdraw3d(view=[67,151],surface_hide = true,
+       color = orange,
+       parametric_surface(r*cos(theta),r*sin(theta),expr,r,0,1,theta,0,%pi/2),
+       line_width  = 3,
+       color = blue,
+       parametric(t,0,0,t,0,1),
+       color = blue,
+       parametric(0,t,0,t,0,1),
+        color=blue,
+        parametric(cos(theta),sin(theta),ur(theta),theta,0,%pi/2)
+)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Another example:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+U(theta):= if (0<=theta and theta<=%pi/2) then sin(2*theta)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+dirichlet_laplace_wedge(1,%pi/2,U(theta),theta,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsubsect start ]
+Neumann problem
+   [wxMaxima: subsubsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+In the case of Neumann conditions, instead of u(R,theta)=f(theta) we have
+u_r(R,theta)=f(theta), the rest of the setting remains unchanged. 
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+neumann_laplace_wedge(R,%pi/2,ur(theta),theta,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Let us see the result graphically:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+expr:neumann_laplace_wedge(1,%pi/2,ur(theta),theta,15)$;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxdraw3d(view=[67,151],surface_hide = true,
+       color = orange,
+       parametric_surface(r*cos(theta),r*sin(theta),expr,r,0,1,theta,0,%pi/2),
+       line_width  = 3,
+       color = blue,
+       parametric(t,0,0,t,0,1),
+       color = blue,
+       parametric(0,t,0,t,0,1)
+    /*    color=blue,
+        parametric(cos(theta),sin(theta),ur(theta),theta,0,%pi/2)*/
+)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: section start ]
+The 2D wave equation
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: subsect start ]
+Vibrating clamped circular membrane
+   [wxMaxima: subsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+An example (with circular symmetry):
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f(r,theta):=1-r^4$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g(r,theta):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wave2d_disk(1,1,f,g,3,2),numer;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+expr:chop(%,12)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxanimate_draw3d(s,makelist(i/10,i,0,20),
+   surface_hide=true,zrange=[-1.5,1.5],
+   color=orange,
+   parametric_surface(r*cos(theta),r*sin(theta),subst(t=s,expr),r,0,1,theta,0,2*%pi)
+),wxanimate_framerate=6$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Beautiful!
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: subsect start ]
+Vibrating clamped rectangular membrane
+   [wxMaxima: subsect end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f(x,y):=x*(4-x)*y*(2-y)/10$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g(x,y):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wave2d_rectangle(sqrt(5),4,2,f,g,4,4)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+expre:%$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxanimate_draw3d(s,makelist(i/10,i,0,32),
+   surface_hide=true,zrange=[-1.5,1.5],
+   color=orange,
+   parametric_surface(x,y,subst(t=s,expre),x,0,4,y,0,2)
+),wxanimate_framerate=8$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(f,g)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: section start ]
+Mixed heat
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: comment start ]
+This is the more general function for solving the heat equation under
+arbitrary conditions
+            a1 u(0,t) + b1 u_x(0,t) = hf1(t)
+            a2 u(L,t) + b2 u_x(L,t) = hf2(t),
+in the particular cases 
+    i) b1=0=b2, it calls to the dirichlet_heat function
+    ii) a1=0=a2, it calls to the neumann_heat function
+For some values of a1,b1,a2,b2 there is no closed form for lambda[n].
+In these cases, the solution is expressed in terms of a symbol lambda[n],
+and a message is printed calling attention to this fact and giving the
+equation for the values of lambda[n]
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: comment start ]
+This example comes from 
+http://www.math.ttu.edu/~gilliam/ttu/f08/m4354_f08/m4354_ch4_heat_bvp.pdf 
+sec 4.5
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(L>0)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x,t):=if (0<=x and x<=L) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(x):=if (0<=x and x<=L) then x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h1(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h2(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_heat(Q(x,t),F(x),1,0,0,1,h1(t),h2(t),x,t,L,1,inf);
+/* [wxMaxima: input   end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
+
+
+/* [wxMaxima: comment start ]
+Notice the global minus sign! It could be absorbed writing (-1)^(n+1) instead of (-1)^n
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+forget(L>0)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(Q,F,h1,h2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+The next one is from Larry C. Andrews: "Elementary partial differential equations
+and boundary value problems, pg 255"
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+S(x,t):=if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f(x):=if (0<=x and x<=1) then T[1]$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+hh1(t):=T[1]$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+hh2(t):=T[2]$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_heat(S(x,t),f(x),1,0,1,1,hh1(t),hh2(t),x,t,1,1,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(S,f,hh1,hh2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Now, consider a Neumann problem. The program calls to neumann_heat:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+T(x,t):=if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(x):= if (0<=x and x<=1) then 100*x*(1-x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+bb1(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+bb2(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_heat(T(x,t),F(x),0,1,0,1,bb1(t),bb2(t),x,t,1,1/4,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(T,F,bb1,bb2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+This problem and the next one come from
+http://ramanujan.math.trinity.edu/rdaileda/teach/s12/m3357/lectures/lecture_2_28_short.pdf
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x,t):=if (0<=x and x<=3) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f(x):= if (0<=x and x<=3) then 100*(1-x/3)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+b1(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+b2(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_heat(Q(x,t),f(x),1,0,1/2,1,b1(t),b2(t),x,t,3,1/25,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(Q,f,b1,b2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+Let us finish with an example where dirichlet_heat is invoked: 
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(t>0)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x,t):=if (0<=x and x<=%pi) then sin(x)+x/%pi+exp(-t)*(x/%pi -1)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(x):=if (0<=x and x<=%pi) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h1(t):=exp(-t)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h2(t):=t$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_heat(Q(x,t),F(x),1,0,1,0,h1(t),h2(t),x,t,%pi,1,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(Q,F,h1,h2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+forget(t>0)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsect start ]
+Examples where Mathematica fails
+   [wxMaxima: subsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+All the examples below are taken from
+https://www.12000.org/my_notes/pde_in_CAS/maple_2019_and_mma_12/inse5.htm#x6-240005
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(t>0)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(L>0)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+These assumptions will be maintained throughout.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: subsubsect start ]
+Problem 5.12
+   [wxMaxima: subsubsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+It seems that Mathematica cannot work with mixed Dirichlet-Neumann conditions:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x,t):=if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(x):=if (0<=x and x<=1) then 1-x^3/4$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h1(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h2(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_heat(Q(x,t),F(x),0,1,1,1,h1(t),h2(t),x,t,1,k,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(Q,F,h1,h2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsubsect start ]
+Problem 5.14
+   [wxMaxima: subsubsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+This one probably fails in Mma because f(x) is symbolic:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x,t):=if (0<=x and x<=L) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(x):=if (0<=x and x<=L) then f(x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h1(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h2(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_heat(Q(x,t),F(x),1,1,1,1,h1(t),h2(t),x,t,L,k,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(Q,F,h1,h2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsubsect start ]
+Problem 5.17
+   [wxMaxima: subsubsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+This problem has non-homogeneous boundary conditions.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x,t):=if (0<=x and x<=L) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(x):=if (0<=x and x<=L) then f(x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h1(t):=A$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h2(t):=B$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_heat(Q(x,t),F(x),1,0,0,1,h1(t),h2(t),x,t,L,k,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(Q,F,h1,h2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsubsect start ]
+Problem 5.21
+   [wxMaxima: subsubsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+Mathematica gives a very strange answer here. Ours coincide with Maple:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x,t):=if (0<=x and x<=40) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(x):=if (0<=x and x<=20) then x elseif (20<=x and x<=40) then 40-x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h1(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h2(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_heat(Q(x,t),F(x),1,0,1,0,h1(t),h2(t),x,t,40,1,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(Q,F,h1,h2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsubsect start ]
+Problem 5.25
+   [wxMaxima: subsubsect end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x,t):=if (0<=x and x<=L) then cos(w*t)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(x):=if (0<=x and x<=L) then x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h1(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h2(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_heat(Q(x,t),F(x),0,1,0,1,h1(t),h2(t),x,t,L,k,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(Q,F,h1,h2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsubsect start ]
+Example 5.26
+   [wxMaxima: subsubsect end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x,t):=if (0<=x and x<=L) then exp(-c*t)*sin(2*%pi*x/L)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: comment start ]
+To carry on some computations involving f(x), we need to declare this as real,
+and this needs to be an atom, so we will be a little tricky here:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+declare(f,real)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(x):=if (0<=x and x<=L) then f(x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h1(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h2(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_heat(Q(x,t),F(x),0,1,0,1,h1(t),h2(t),x,t,L,k,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(Q,F,h1,h2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsubsect start ]
+Problem 5.28
+   [wxMaxima: subsubsect end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x,t):=if (0<=x and x<=1) then 1+x*cos(t)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(x):=if (0<=x and x<=1) then 1+cos(2*%pi*x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h1(t):=sin(t)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h2(t):=sin(t)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_heat(Q(x,t),F(x),0,1,0,1,h1(t),h2(t),x,t,1,1,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(Q,F,h1,h2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsubsect start ]
+Problem 5.33
+   [wxMaxima: subsubsect end   ] */
+
+
+/* [wxMaxima: input   start ] */
+declare(g,real)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x,t):=if (0<=x and x<=1) then f(x,t)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(x):=if (0<=x and x<=1) then g(x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h1(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h2(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_heat(Q(x,t),F(x),1,0,1,0,h1(t),h2(t),x,t,1,k,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+remove(g,real)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(Q,F,h1,h2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsubsect start ]
+A special case: Problem 5.18
+   [wxMaxima: subsubsect end   ] */
+
+
+/* [wxMaxima: input   start ] */
+Q(x,t):=if (0<=x and x<=L) then k$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F(x):=if (0<=x and x<=L) then f(x)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h1(t):=A$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+h2(t):=B$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_heat(Q(x,t),F(x),1,0,1,0,h1(t),h2(t),x,t,L,k,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(Q,F,h1,h2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: section start ]
+Mixed wave
+   [wxMaxima: section end   ] */
+
+
+/* [wxMaxima: comment start ]
+This is the more general function for solving the wave equation under
+arbitrary conditions
+            a1 u(0,t) + b1 u_x(0,t) = hf1(t)
+            a2 u(L,t) + b2 u_x(L,t) = hf2(t),
+in the particular cases 
+    i) b1=0=b2, it calls to the dirichlet_wave function
+    ii) a1=0=a2, it calls to the neumann_wave function
+For some values of a1,b1,a2,b2 there is no closed form for lambda[n].
+In these cases, the solution is expressed in terms of a symbol lambda[n],
+and a message is printed calling attention to this fact and giving the
+equation for the values of lambda[n]
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: subsect start ]
+Example (Mathematica fails)
+   [wxMaxima: subsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+An example from https://www.12000.org/my_notes/pde_in_CAS/maple_2019_and_mma_12/inse19.htm#x20-14300019
+(Problem 19.10)
+It is actually a Dirichlet problem.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(t>0)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+T(x,t):=if (0<=x and x<=L) then a*x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f(x):=if (0<=x and x<=L) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g(x):=if (0<=x and x<=L) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+bb1(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+bb2(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_wave(T(x,t),f(x),g(x),1,0,1,0,bb1(t),bb2(t),x,t,L,c,inf);
+/* [wxMaxima: input   end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
+
+
+/* [wxMaxima: comment start ]
+Notice that this is the same solution (but in a simplified form), because:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fouriersin_series((a*L^2*x-a*x^3)/6,x,L,inf);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(T,f,g,bb1,bb2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsect start ]
+Example (Mathematica fails)
+   [wxMaxima: subsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+An example from https://www.12000.org/my_notes/pde_in_CAS/maple_2019_and_mma_12/inse19.htm#x20-14300019
+(Problem 19.14)
+It is actually a Dirichlet problem.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+T(x,t):=if (0<=x and x<=1) then x*exp(-t)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f(x):=if (0<=x and x<=1) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g(x):=if (0<=x and x<=1) then 1$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+bb1(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+bb2(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_wave(T(x,t),f(x),g(x),1,0,1,0,bb1(t),bb2(t),x,t,1,1,inf);
+/* [wxMaxima: input   end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
+
+
+/* [wxMaxima: comment start ]
+This is the same solution provided by Maple, slightly reorganized. This
+can be more clearly seen by factorizing:
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+factor(%);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(T,f,g,bb1,bb2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: subsect start ]
+Example (Mathematica fails)
+   [wxMaxima: subsect end   ] */
+
+
+/* [wxMaxima: comment start ]
+An example from https://www.12000.org/my_notes/pde_in_CAS/maple_2019_and_mma_12/inse19.htm#x20-14300019
+(Problem 19.15)
+It is actually a Dirichlet problem.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+T(x,t):=if (0<=x and x<=%pi) then (1+t)*x$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+f(x):=if (0<=x and x<=%pi) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+g(x):=if (0<=x and x<=%pi) then 0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+bb1(t):=0$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+bb2(t):=sin(t)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_wave(T(x,t),f(x),g(x),1,0,1,0,bb1(t),bb2(t),x,t,%pi,2,inf);
+/* [wxMaxima: input   end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
+
+
+/* [wxMaxima: comment start ]
+Again, aside some rearrangement, this is the same solution provided by Maple.
+   [wxMaxima: comment end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(T,f,g,bb1,bb2)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(c>0)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+assume(L>0)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+mixed_wave(0,f(x),0,1,0,0,1,0,0,x,t,L,c,inf);
+/* [wxMaxima: input   end   ] */
+/* [wxMaxima: answer  start ] */
+nonzero;
+/* [wxMaxima: answer  end   ] */
+/* [wxMaxima: answer  start ] */
+nonzero;
+/* [wxMaxima: answer  end   ] */
+
+
+
+/* Old versions of Maxima abort on loading files that end in a comment. */
+"Created with wxMaxima 19.02.0-DevelopmentSnapshot"$
