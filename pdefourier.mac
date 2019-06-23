@@ -15,9 +15,10 @@ Authors: Jose A. Vallejo
 
 load(simplify_sum)$
 load(draw)$
-load(syntactic_factor)$
-load(piecewise)$
-/*load(abs_integrate)$*/
+load("syntactic_factor.mac")$
+load("piecewise.mac")$
+/*load(piecewise)$
+load(syntactic_factor)$*/
 
 piecewisep(expr):=if atom(expr) then false else is(inpart(expr,0)="if")$
 paritycheck(expr,var):=block(
