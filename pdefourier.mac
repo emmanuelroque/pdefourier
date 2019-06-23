@@ -69,36 +69,36 @@ powxsin_int(pow,freq,p,a,b):=block(
 /*Heuristic a_n
 
 */
-heuristic_an(expr,var,p,a,b):=block(
+heuristic_an(expr,var,p,aa,bb):=block(
     [n,ans],
     declare(n,integer),
     if listp(powxsin(expr,var,p)) then (
-    if is(a=-b) and evenp(nexp) then 0 else(
-        ans:(const/(2*p))*powxsin_int(nexp,nfreq+n,p,a,b)+ev((const/(2*p))*powxsin_int(nexp,nfreq-n,p,a,b),noeval,n),
+    if is(aa=-bb) and evenp(nexp) then 0 else(
+        ans:(const/(2*p))*powxsin_int(nexp,nfreq+n,p,aa,bb)+ev((const/(2*p))*powxsin_int(nexp,nfreq-n,p,aa,bb),noeval,n),
             remove(n,integer),
             ans
         )
     )
     elseif listp(powxcos(expr,var,p)) then (
-        if is(a=-b) and oddp(nexp) then 0 else(
-    ans:(const/(2*p))*powxcos_int(nexp,nfreq+n,p,a,b)+ev((const/(2*p))*powxcos_int(nexp,nfreq-n,p,a,b),noeval,n),
+        if is(aa=-bb) and oddp(nexp) then 0 else(
+    ans:(const/(2*p))*powxcos_int(nexp,nfreq+n,p,aa,bb)+ev((const/(2*p))*powxcos_int(nexp,nfreq-n,p,aa,bb),noeval,n),
             remove(n,integer),
             ans)
     )
     elseif listp(multsin(expr,var,p)) then(
-        if is(a=-b) then 0 else(
-        ans:(const/(2*p))*powxsin_int(0,nfreq+n,p,a,b)+ev((const/(2*p))*powxsin_int(0,nfreq-n,p,a,b),noeval,n),
+        if is(aa=-bb) then 0 else(
+        ans:(const/(2*p))*powxsin_int(0,nfreq+n,p,aa,bb)+ev((const/(2*p))*powxsin_int(0,nfreq-n,p,aa,bb),noeval,n),
         remove(n,integer),
             ans
         )
     )
     elseif listp(multcos(expr,var,p)) then (
-    ans:(const/(2*p))*powxcos_int(0,nfreq+n,p,a,b)+ev((const/(2*p))*powxcos_int(0,nfreq-n,p,a,b),noeval,n),
+    ans:(const/(2*p))*powxcos_int(0,nfreq+n,p,aa,bb)+ev((const/(2*p))*powxcos_int(0,nfreq-n,p,aa,bb),noeval,n),
         remove(n,integer),
             ans
     )
     else(
-    ans:integrate(expr*cos(n*%pi*var/p),var,a,b)/p,
+    ans:integrate(expr*cos(n*%pi*var/p),var,aa,bb)/p,
         remove(n,integer),
         ans
     )
@@ -106,37 +106,37 @@ heuristic_an(expr,var,p,a,b):=block(
 /*Heuristic b_n
 
 */
-heuristic_bn(expr,var,p,a,b):=block(
+heuristic_bn(expr,var,p,aa,bb):=block(
     [n,ans],
     declare(n,integer),
     if listp(powxsin(expr,var,p)) then (
-    if is(a=-b) and oddp(nexp) then 0 else(
-        ans:(-const/(2*p))*powxcos_int(nexp,nfreq+n,p,a,b)+ev((const/(2*p))*powxcos_int(nexp,nfreq-n,p,a,b),noeval,n),
+    if is(aa=-bb) and oddp(nexp) then 0 else(
+        ans:(-const/(2*p))*powxcos_int(nexp,nfreq+n,p,aa,bb)+ev((const/(2*p))*powxcos_int(nexp,nfreq-n,p,aa,bb),noeval,n),
             remove(n,integer),
             ans
         )
     )
     elseif listp(powxcos(expr,var,p)) then (
-        if is(a=-b) and evenp(nexp) then 0 else(
-    ans:(const/(2*p))*powxsin_int(nexp,nfreq+n,p,a,b)+ev((const/(2*p))*powxsin_int(nexp,n-nfreq,p,a,b),noeval,n),
+        if is(aa=-bb) and evenp(nexp) then 0 else(
+    ans:(const/(2*p))*powxsin_int(nexp,nfreq+n,p,aa,bb)+ev((const/(2*p))*powxsin_int(nexp,n-nfreq,p,aa,bb),noeval,n),
             remove(n,integer),
             ans
         )
     )
     elseif listp(multsin(expr,var,p)) then(
-        ans:(-const/(2*p))*powxcos_int(0,nfreq+n,p,a,b)+ev((const/(2*p))*powxcos_int(0,nfreq-n,p,a,b),noeval,n),
+        ans:(-const/(2*p))*powxcos_int(0,nfreq+n,p,aa,bb)+ev((const/(2*p))*powxcos_int(0,nfreq-n,p,aa,bb),noeval,n),
         remove(n,integer),
             ans
     )
     elseif listp(multcos(expr,var,p)) then (
-        if is(a=-b) then 0 else(
-    ans:(const/(2*p))*powxsin_int(0,nfreq+n,p,a,b)+ev((const/(2*p))*powxsin_int(0,n-nfreq,p,a,b),noeval,n),
+        if is(aa=-bb) then 0 else(
+    ans:(const/(2*p))*powxsin_int(0,nfreq+n,p,aa,bb)+ev((const/(2*p))*powxsin_int(0,n-nfreq,p,aa,bb),noeval,n),
         remove(n,integer),
             ans
         )
     )
     else(
-    ans:integrate(expr*sin(n*%pi*var/p),var,a,b)/p,
+    ans:integrate(expr*sin(n*%pi*var/p),var,aa,bb)/p,
         remove(n,integer),
         ans
     )
@@ -742,78 +742,81 @@ dirichlet_laplace_annulus(a,b,fexpr,gexpr,var,NN):=block(
     )
 )$
 
-dirichlet_laplace_wedge(R,a,fexpr,var,NN):=block(
-    [bnf,svf,bnaux,svaux,n,p:a],
+dirichlet_laplace_wedge(R,aa,fexpr,var,NN):=block(
+    [bnf,svf,bnaux,svaux,n,p:aa],
     [[bnf],svf]:fouriersincoeff(fexpr,var,p),
-    bnaux:bnf*(r/R)^(n*%pi/a),
+    bnaux:bnf*(r/R)^(n*%pi/aa),
     if emptyp(svf) then return(fouriersincoeff_expand([[bnaux],[]],var,p,NN))
     else(
-    svaux:map(lambda([e],[e[1],e[2]*(r/R)^(e[1]*%pi/a)]),svf),
+    svaux:map(lambda([e],[e[1],e[2]*(r/R)^(e[1]*%pi/aa)]),svf),
     return(fouriersincoeff_expand([[bnaux],svaux],var,p,NN))
     )
 )$
 
-neumann_laplace_wedge(R,a,fexpr,var,NN):=block(
-    [bnf,svf,bnaux,svaux,n,p:a],
+neumann_laplace_wedge(R,aa,fexpr,var,NN):=block(
+    [bnf,svf,bnaux,svaux,n,p:aa],
     [[bnf],svf]:fouriersincoeff(fexpr,var,p),
-    bnaux:bnf*(r/R)^(n*%pi/a)*(R*a/(n*%pi)),
+    bnaux:bnf*(r/R)^(n*%pi/aa)*(R*aa/(n*%pi)),
     if emptyp(svf) then return(fouriersincoeff_expand([[bnaux],[]],var,p,NN))
     else(
-    svaux:map(lambda([e],[e[1],e[2]*(r/R)^(e[1]*%pi/a)*(R*a/(e[1]*%pi))]),svf),
+    svaux:map(lambda([e],[e[1],e[2]*(r/R)^(e[1]*%pi/aa)*(R*aa/(e[1]*%pi))]),svf),
     return(fouriersincoeff_expand([[bnaux],svaux],var,p,NN))
     )
 )$
 
-dirichlet_laplace_rectangle(a,b,f1expr,f2expr,g1expr,g2expr,var1,var2,NN):=block(
+dirichlet_laplace_rectangle(aa,bb,f1expr,f2expr,g1expr,g2expr,var1,var2,NN):=block(
 [n,f1n,svf1,f2n,svf2,g1n,svg1,g2n,svg2,indxpf1,indxpf2,indxpg1,indxpg2,
         indxp,Fnaux,Gnaux,svFaux,svGaux,ans],
-    [[f1n],svf1]:fouriersincoeff(f1expr,var1,a),
-    [[f2n],svf2]:fouriersincoeff(f2expr,var1,a),
-    [[g1n],svg1]:fouriersincoeff(g1expr,var2,b),
-    [[g2n],svg2]:fouriersincoeff(g2expr,var2,b),
-    Fnaux:f1n*sinh(n*%pi*(b-var2)/a)/sinh(n*%pi*b/a)+f2n*sinh(n*%pi*var2/a)/sinh(n*%pi*b/a),
-    Gnaux:g1n*sinh(n*%pi*(a-var1)/b)/sinh(n*%pi*a/b)+g2n*sinh(n*%pi*var1/b)/sinh(n*%pi*a/b),
+    [[f1n],svf1]:fouriersincoeff(f1expr,var1,aa),
+    [[f2n],svf2]:fouriersincoeff(f2expr,var1,aa),
+    [[g1n],svg1]:fouriersincoeff(g1expr,var2,bb),
+    [[g2n],svg2]:fouriersincoeff(g2expr,var2,bb),
+    Fnaux:f1n*sinh(n*%pi*(bb-var2)/aa)/sinh(n*%pi*bb/aa)+f2n*sinh(n*%pi*var2/aa)/sinh(n*%pi*bb/aa),
+    Gnaux:g1n*sinh(n*%pi*(aa-var1)/bb)/sinh(n*%pi*aa/bb)+g2n*sinh(n*%pi*var1/bb)/sinh(n*%pi*aa/bb),
     if emptyp(svf1) and emptyp(svf2) and emptyp(svg1) and emptyp(svg2) then(
-        ans:fouriersincoeff_expand([[Fnaux],[]],var1,a,NN)+fouriersincoeff_expand([[Gnaux],[]],var2,b,NN),
+        ans:fouriersincoeff_expand([[Fnaux],[]],var1,aa,NN)+fouriersincoeff_expand([[Gnaux],[]],var2,bb,NN),
         return(ans)
     )
     else(
         indxpf1:map(first,svf1), indxpf2:map(first,svf2),
         indxpg1:map(first,svg1), indxpg2:map(first,svg2),
         indxp:unique(append(indxpf1,indxpf2,indxpg1,indxpg2)),
-        svFaux:map(lambda([e],[e,evalsv_scn(f1n,svf1,indxpf1,e)*sinh(e*%pi*(b-var2)/a)/sinh(e*%pi*b/a)
-                    +evalsv_scn(f2n,svf2,indxpf2,e)*sinh(e*%pi*var2/a)/sinh(e*%pi*b/a)]),indxp),
-        svGaux:map(lambda([e],[e,evalsv_scn(g1n,svg1,indxpg1,e)*sinh(e*%pi*(a-var1)/b)/sinh(e*%pi*a/b)
-                    +evalsv_scn(g2n,svg2,indxpg2,e)*sinh(e*%pi*var1/b)/sinh(e*%pi*a/b)]),indxp),
-        ans:fouriersincoeff_expand([[Fnaux],svFaux],var1,a,NN)+fouriersincoeff_expand([[Gnaux],svGaux],var2,b,NN),
+        svFaux:map(lambda([e],[e,evalsv_scn(f1n,svf1,indxpf1,e)*sinh(e*%pi*(bb-var2)/aa)/sinh(e*%pi*bb/aa)
+                    +evalsv_scn(f2n,svf2,indxpf2,e)*sinh(e*%pi*var2/aa)/sinh(e*%pi*bb/aa)]),indxp),
+        svGaux:map(lambda([e],[e,evalsv_scn(g1n,svg1,indxpg1,e)*sinh(e*%pi*(aa-var1)/bb)/sinh(e*%pi*aa/bb)
+                    +evalsv_scn(g2n,svg2,indxpg2,e)*sinh(e*%pi*var1/bb)/sinh(e*%pi*aa/bb)]),indxp),
+        ans:fouriersincoeff_expand([[Fnaux],svFaux],var1,aa,NN)+fouriersincoeff_expand([[Gnaux],svGaux],var2,bb,NN),
         return(ans)
     )
 )$
 
-neumann_laplace_rectangle(a,b,f1expr,f2expr,g1expr,g2expr,var1,var2,NN):=block(
+neumann_laplace_rectangle(aa,bb,f1expr,f2expr,g1expr,g2expr,var1,var2,NN):=block(
 [n,f1n,svf1,f2n,svf2,g1n,svg1,g2n,svg2,indxpf1,indxpf2,indxpg1,indxpg2,
         indxp,Fnaux,Gnaux,svFaux,svGaux,C,ans,f10,g10,f20,g20],
-    [[f10,f1n],svf1]:fouriercoscoeff(f1expr,var1,a),
-    [[f20,f2n],svf2]:fouriercoscoeff(f2expr,var1,a),
-    [[g10,g1n],svg1]:fouriercoscoeff(g1expr,var2,b),
-    [[g20,g2n],svg2]:fouriercoscoeff(g2expr,var2,b),
-    Fnaux:(-a/(n*%pi))*f1n*cosh(n*%pi*(b-var2)/a)/sinh(n*%pi*b/a)+(a/(n*%pi))*f2n*cosh(n*%pi*var2/a)/sinh(n*%pi*b/a),
-    Gnaux:(-b/(n*%pi))*g1n*cosh(n*%pi*(a-var1)/b)/sinh(n*%pi*a/b)+(b/(n*%pi))*g2n*cosh(n*%pi*var1/b)/sinh(n*%pi*a/b),
+    [[f10,f1n],svf1]:fouriercoscoeff(f1expr,var1,aa),
+    [[f20,f2n],svf2]:fouriercoscoeff(f2expr,var1,aa),
+    [[g10,g1n],svg1]:fouriercoscoeff(g1expr,var2,bb),
+    [[g20,g2n],svg2]:fouriercoscoeff(g2expr,var2,bb),
+    if is(equal(f10,0)) and is(equal(f20,0)) and is(equal(g10,0)) and is(equal(g20,0)) then(
+    Fnaux:(-aa/(n*%pi))*f1n*cosh(n*%pi*(bb-var2)/aa)/sinh(n*%pi*bb/aa)+(aa/(n*%pi))*f2n*cosh(n*%pi*var2/aa)/sinh(n*%pi*bb/aa),
+    Gnaux:(-bb/(n*%pi))*g1n*cosh(n*%pi*(aa-var1)/bb)/sinh(n*%pi*aa/bb)+(bb/(n*%pi))*g2n*cosh(n*%pi*var1/bb)/sinh(n*%pi*aa/bb),
     if emptyp(svf1) and emptyp(svf2) and emptyp(svg1) and emptyp(svg2) then(
-        ans:fouriercoscoeff_expand([[0,Fnaux],[]],var1,a,NN)+fouriercoscoeff_expand([[0,Gnaux],[]],var2,b,NN),
+        ans:fouriercoscoeff_expand([[0,Fnaux],[]],var1,aa,NN)+fouriercoscoeff_expand([[0,Gnaux],[]],var2,bb,NN),
         return(ans+C)
     )
     else(
         indxpf1:map(first,svf1), indxpf2:map(first,svf2),
         indxpg1:map(first,svg1), indxpg2:map(first,svg2),
         indxp:unique(append(indxpf1,indxpf2,indxpg1,indxpg2)),
-        svFaux:map(lambda([e],[e,(-a/(n*%pi))*evalsv_scn(f1n,svf1,indxpf1,e)*cosh(e*%pi*(b-var2)/a)/sinh(e*%pi*b/a)
-                    +(a/(n*%pi))*evalsv_scn(f2n,svf2,indxpf2,e)*cosh(e*%pi*var2/a)/sinh(e*%pi*b/a)]),indxp),
-        svGaux:map(lambda([e],[e,(-b/(n*%pi))*evalsv_scn(g1n,svg1,indxpg1,e)*cosh(e*%pi*(a-var1)/b)/sinh(e*%pi*a/b)
-                    +(b/(n*%pi))*evalsv_scn(g2n,svg2,indxpg2,e)*cosh(e*%pi*var1/b)/sinh(e*%pi*a/b)]),indxp),
-        ans:fouriercoscoeff_expand([[0,Fnaux],svFaux],var1,a,NN)+fouriercoscoeff_expand([[0,Gnaux],svGaux],var2,b,NN),
+        svFaux:map(lambda([e],[e,(-aa/(n*%pi))*evalsv_scn(f1n,svf1,indxpf1,e)*cosh(e*%pi*(bb-var2)/aa)/sinh(e*%pi*bb/aa)
+                    +(aa/(n*%pi))*evalsv_scn(f2n,svf2,indxpf2,e)*cosh(e*%pi*var2/aa)/sinh(e*%pi*bb/aa)]),indxp),
+        svGaux:map(lambda([e],[e,(-bb/(n*%pi))*evalsv_scn(g1n,svg1,indxpg1,e)*cosh(e*%pi*(aa-var1)/bb)/sinh(e*%pi*aa/bb)
+                    +(bb/(n*%pi))*evalsv_scn(g2n,svg2,indxpg2,e)*cosh(e*%pi*var1/bb)/sinh(e*%pi*aa/bb)]),indxp),
+        ans:fouriercoscoeff_expand([[0,Fnaux],svFaux],var1,aa,NN)+fouriercoscoeff_expand([[0,Gnaux],svGaux],var2,bb,NN),
         return(ans+C)
+        )
     )
+    else error("The solution does not exist")
 )$
 
 /*Beggining of 2D Wave equation*/
