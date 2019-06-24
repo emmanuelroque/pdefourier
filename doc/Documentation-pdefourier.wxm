@@ -56,7 +56,7 @@ kill(all);
 
 
 /* [wxMaxima: input   start ] */
-with_stdout("/dev/null",load("../nopoles/pdefourier.mac"))$
+with_stdout("/dev/null",load("../pdefourier.mac"))$
 /* [wxMaxima: input   end   ] */
 
 
@@ -2362,7 +2362,7 @@ Delta u=0 in ]0,a[ x]0,b[ and
 However, in this case, the fact that the solution to a Neumann problem
 is determined up to an additive constant, imposes some additional conditions.
 It is necessary that
-        int(f1(x),x,0,a)+int(f2(x),x,0,a)+int(g1(y),y,0,b)+int(g2(y),y,0,b)=0
+        int(f1(x),x,0,a)=int(f2(x),x,0,a)=int(g1(y),y,0,b)=int(g2(y),y,0,b)=0
 and this condition is checked by the solver, returning an error message if it is
 not satisfied.
    [wxMaxima: comment end   ] */
