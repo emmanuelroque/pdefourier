@@ -1111,3 +1111,202 @@ if ((is(a1=0) and is(b2=0)) or (is(a2=0) and is(b1=0))) then (
         )
     )
 )$
+
+mixed_laplace_rectangle(alpha,beta,gamma,delta,
+    f0expr,fbexpr,g0expr,gaexpr,aa,bb,xvar,yvar,NN):=block(
+    [n,g00,g0n,ga0,gan,f00,f0n,fb0,fbn,Gn,Fn,F0,G0,lamn,alphn,
+    svg0,svga,svf0,svfb,indxsvG,svG,svF,indxsvg0,indxsvga,
+    indxsvF,indxsvf0,indxsvfb,ans],
+    if (is(alpha=0) and is(beta=0) and is(gamma=0) and is(delta=0)) then
+    return(dirichlet_laplace_rectangle(aa,bb,f0expr,fbexpr,g0expr,gaexpr,xvar,yvar,NN))
+    elseif (is(alpha=1) and is(beta=1) and is(gamma=1) and is(delta=1)) then
+    return(neumann_laplace_rectangle(aa,bb,f0expr,fbexpr,g0expr,gaexpr,xvar,yvar,NN))
+    /*P1*/
+    elseif (is(alpha=0) and is(beta=0) and is(gamma=0) and is(delta=1)) then(
+        declare(n,integer),
+        alphn:(2*n-1)*%pi/(2*aa),
+        lamn:n*%pi/bb,
+        f0n:(2/aa)*integrate(f0expr*sin(alphn*xvar),xvar,0,aa),
+        fbn:(2/aa)*integrate(fbexpr*sin(alphn*xvar),xvar,0,aa),
+        [[g0n],svg0]:fouriersincoeff(g0expr,yvar,bb),
+        [[gan],svga]:fouriersincoeff(gaexpr,yvar,bb),
+        Fn:f0n*sinh(alphn*(bb-yvar))/sinh(alphn*bb)+fbn*sinh(alphn*yvar)/sinh(alphn*bb),
+        Gn:g0n*cosh(lamn*(aa-xvar))/cosh(lamn*aa)+gan*sinh(lamn*xvar)/(lamn*cosh(lamn*aa)),
+        if emptyp(svg0) and emptyp(svga) then
+        return(sum(Fn*sin(alphn*xvar),n,1,NN)+fouriersincoeff_expand([[Gn],[]],yvar,bb,NN))
+        else(
+        indxsvg0:map(first,svg0), indxsvga:map(first,svga),
+        indxsvG:unique(append(indxsvg0,indxsvga)),
+            svG:map(lambda([e],[e,evalsv_scn(g0n,svg0,indxsvg0,e)*cosh(e*%pi*(aa-xvar)/bb)/cosh(e*%pi*aa/bb)
+                    +bb*evalsv_scn(gan,svga,indxsvga,e)*sinh(e*%pi*xvar/bb)/(e*%pi*cosh(e*%pi*aa/bb))]),indxsvG),
+        return(sum(Fn*sin(alphn*xvar),n,1,NN)+fouriersincoeff_expand([[Gn],svG],yvar,bb,NN))
+        )
+    )
+    /*P2*/
+    elseif (is(alpha=0) and is(beta=0) and is(gamma=1) and is(delta=0)) then(
+        declare(n,integer),
+        alphn:(2*n-1)*%pi/(2*aa),
+        lamn:n*%pi/bb,
+        f0n:(2/aa)*integrate(f0expr*cos(alphn*xvar),xvar,0,aa),
+        fbn:(2/aa)*integrate(fbexpr*cos(alphn*xvar),xvar,0,aa),
+        [[g0n],svg0]:fouriersincoeff(g0expr,yvar,bb),
+        [[gan],svga]:fouriersincoeff(gaexpr,yvar,bb),
+        Fn:f0n*sinh(alphn*(bb-yvar))/sinh(alphn*bb)+fbn*sinh(alphn*yvar)/sinh(alphn*bb),
+        Gn:g0n*sinh(lamn*(xvar-aa))/(lamn*cosh(lamn*aa))+gan*cosh(lamn*xvar)/cosh(lamn*aa),
+        if emptyp(svg0) and emptyp(svga) then(
+        remove(n,integer),
+        return(sum(Fn*cos(alphn*xvar),n,1,NN)+fouriersincoeff_expand([[Gn],[]],yvar,bb,NN)))
+        else(
+        indxsvg0:map(first,svg0), indxsvga:map(first,svga),
+        indxsvG:unique(append(indxsvg0,indxsvga)),
+            svG:map(lambda([e],[e,bb*evalsv_scn(g0n,svg0,indxsvg0,e)*sinh(e*%pi*(xvar-aa)/bb)/(e*%pi*cosh(e*%pi*aa/bb))
+                    +evalsv_scn(gan,svga,indxsvga,e)*cosh(e*%pi*xvar/bb)/cosh(e*%pi*aa/bb)]),indxsvG),
+            remove(n,integer),
+        return(sum(Fn*sin(alphn*xvar),n,1,NN)+fouriersincoeff_expand([[Gn],svG],yvar,bb,NN))
+        )
+    )
+    /*P3*/
+    elseif (is(alpha=0) and is(beta=0) and is(gamma=1) and is(delta=1)) then(
+        declare(n,integer),
+        alphn:n*%pi/aa, lamn:n*%pi/bb,
+        [[f00,f0n],svf0]:fouriercoscoeff(f0expr,xvar,aa),
+        [[fb0,fbn],svfb]:fouriercoscoeff(fbexpr,xvar,aa),
+        [[g0n],svg0]:fouriersincoeff(g0expr,yvar,bb),
+        [[gan],svga]:fouriersincoeff(gaexpr,yvar,bb),
+        F0:(1-yvar/bb)*f00+yvar*fb0/bb,
+        Fn:f0n*sinh(alphn*(bb-yvar))/sinh(alphn*bb)+fbn*sinh(alphn*yvar)/sinh(alphn*bb),
+        Gn:gan*cosh(lamn*xvar)/(lamn*sinh(lamn*aa))-g0n*cosh(lamn*(aa-xvar))/(lamn*sinh(lamn*aa)),
+        if emptyp(svf0) and emptyp(svfb) and emptyp(svg0) and emptyp(svga) then(
+            remove(n,integer),
+            return(fouriercoscoeff_expand([[F0,Fn],[]],xvar,aa,NN)+fouriersincoeff_expand([[Gn],[]],yvar,bb,NN))
+        )
+        else(
+        indxsvg0:map(first,svg0), indxsvga:map(first,svga),
+        indxsvG:unique(append(indxsvg0,indxsvga)),
+            svG:map(lambda([e],[e,-bb*evalsv_scn(g0n,svg0,indxsvg0,e)*cosh(e*%pi*(aa-xvar)/bb)/(e*%pi*sinh(e*%pi*aa/bb))
+                    +bb*evalsv_scn(gan,svga,indxsvga,e)*cosh(e*%pi*xvar/bb)/(e*%pi*sinh(e*%pi*aa/bb))]),indxsvG),
+        indxsvf0:map(first,svf0), indxsvfb:map(first,svfb),
+        indxsvF:unique(append(indxsvf0,indxsvfb)),
+            svF:map(lambda([e],[e,evalsv_scn(f0n,svf0,indxsvf0,e)*sinh(e*%pi*(bb-yvar)/aa)/sinh(e*%pi*bb/aa)
+                    +evalsv_scn(fbn,svfb,indxsvfb,e)*sinh(e*%pi*yvar/aa)/sinh(e*%pi*bb/aa)]),indxsvF),
+        remove(n,integer),
+        return(fouriercoscoeff_expand([[F0,Fn],svF],xvar,aa,NN)+fouriersincoeff_expand([[Gn],svG],yvar,bb,NN))
+        )
+    )
+    /*P4, calls P1*/
+    elseif (is(alpha=0) and is(beta=1) and is(gamma=0) and is(delta=0)) then
+    return(mixed_laplace_rectangle(0,0,0,1,g0expr,gaexpr,f0expr,fbexpr,bb,aa,yvar,xvar,NN))
+    /*P5*/
+    elseif (is(alpha=0) and is(beta=1) and is(gamma=0) and is(delta=1)) then(
+        declare(n,integer),
+        alphn:(2*n-1)*%pi/(2*aa),
+        lamn:(2*n-1)*%pi/(2*bb),
+        f0n:(2/aa)*integrate(f0expr*sin(alphn*xvar),xvar,0,aa),
+        fbn:(2/aa)*integrate(fbexpr*sin(alphn*xvar),xvar,0,aa),
+        g0n:(2/bb)*integrate(g0expr*sin(lamn*yvar),yvar,0,bb),
+        gan:(2/bb)*integrate(gaexpr*sin(lamn*yvar),yvar,0,bb),
+        Fn:f0n*cosh(alphn*(bb-yvar))/cosh(alphn*bb)+fbn*sinh(alphn*yvar)/(alphn*cosh(alphn*bb)),
+        Gn:g0n*cosh(lamn*(aa-xvar))/cosh(lamn*aa)+gan*sinh(lamn*xvar)/(lamn*cosh(lamn*aa)),
+        ans:sum(Fn*sin(alphn*xvar),n,1,NN)+sum(Gn*sin(lamn*yvar),n,1,NN),
+        remove(n,integer),
+        return(ans)
+    )
+    /*P6*/
+    elseif (is(alpha=0) and is(beta=1) and is(gamma=1) and is(delta=0)) then(
+        declare(n,integer),
+        alphn:(2*n-1)*%pi/(2*aa),
+        lamn:(2*n-1)*%pi/(2*bb),
+        f0n:(2/aa)*integrate(f0expr*cos(alphn*xvar),xvar,0,aa),
+        fbn:(2/aa)*integrate(fbexpr*cos(alphn*xvar),xvar,0,aa),
+        g0n:(2/bb)*integrate(g0expr*sin(lamn*yvar),yvar,0,bb),
+        gan:(2/bb)*integrate(gaexpr*sin(lamn*yvar),yvar,0,bb),
+        Fn:f0n*cosh(alphn*(bb-yvar))/cosh(alphn*bb)+fbn*sinh(alphn*yvar)/(alphn*cosh(alphn*bb)),
+        Gn:g0n*sinh(lamn*(xvar-aa))/(lamn*cosh(lamn*aa))+gan*cosh(lamn*xvar)/cosh(lamn*aa),
+        ans:sum(Fn*cos(alphn*xvar),n,1,NN)+sum(Gn*sin(lamn*yvar),n,1,NN),
+        remove(n,integer),
+        return(ans)
+    )
+    /*P7*/
+    elseif (is(alpha=0) and is(beta=1) and is(gamma=1) and is(delta=1)) then(
+        declare(n,integer),
+        lamn:(2*n-1)*%pi/(2*bb),
+        alphn:n*%pi/aa,
+        [[f00,f0n],svf0]:fouriercoscoeff(f0expr,xvar,aa),
+        [[fb0,fbn],svfb]:fouriercoscoeff(fbexpr,xvar,aa),
+        g0n:(2/bb)*integrate(g0expr*sin(lamn*yvar),yvar,0,bb),
+        gan:(2/bb)*integrate(gaexpr*sin(lamn*yvar),yvar,0,bb),
+        F0:f00+fb0*yvar,
+        Fn:f0n*cosh(alphn*(bb-yvar))/cosh(alphn*bb)+fbn*sinh(alphn*yvar)/(alphn*cosh(alphn*bb)),
+        Gn:-g0n*cosh(lamn*(aa-xvar))/(lamn*sinh(lamn*aa))+gan*cosh(lamn*xvar)/(lamn*sinh(lamn*aa)),
+        if emptyp(svf0) and emptyp(svfb) then(
+            ans:sum(Gn*sin(lamn*yvar),n,1,NN)+fouriercoscoeff_expand([[F0,Fn],[]],xvar,aa,NN),
+            remove(n,integer),
+            return(ans)
+        ) else(
+            indxsvf0:map(first,svf0), indxsvfb:map(first,svfb),
+            indxsvF:unique(append(indxsvf0,indxsvfb)),
+            svF:map(lambda([e],[e,evalsv_scn(f0n,svf0,indxsvf0,e)*cosh(e*%pi*(bb-yvar)/aa)/cosh(e*%pi*bb/aa)
+                    +aa*evalsv_scn(fbn,svfb,indxsvfb,e)*sinh(e*%pi*yvar/aa)/(e*%pi*cosh(e*%pi*bb/aa))]),indxsvF),
+            ans:sum(Gn*sin(lamn*yvar),n,1,NN)+fouriercoscoeff_expand([[F0,Fn],svF],xvar,aa,NN),
+            remove(n,integer),
+            return(ans)
+        )
+    )
+    /*P8, calls P2*/
+    elseif (is(alpha=1) and is(beta=0) and is(gamma=0) and is(delta=0)) then
+    return(mixed_laplace_rectangle(0,0,1,0,g0expr,gaexpr,f0expr,fbexpr,bb,aa,yvar,xvar,NN))
+    /*P9, calls P6*/
+    elseif (is(alpha=1) and is(beta=0) and is(gamma=0) and is(delta=1)) then
+    return(mixed_laplace_rectangle(0,1,1,0,g0expr,gaexpr,f0expr,fbexpr,bb,aa,yvar,xvar,NN))
+    /*P10*/
+    elseif (is(alpha=1) and is(beta=0) and is(gamma=1) and is(delta=0)) then(
+        declare(n,integer),
+        alphn:(2*n-1)*%pi/(2*aa),
+        lamn:(2*n-1)*%pi/(2*bb),
+        f0n:(2/aa)*integrate(f0expr*cos(alphn*xvar),xvar,0,aa),
+        fbn:(2/aa)*integrate(fbexpr*cos(alphn*xvar),xvar,0,aa),
+        g0n:(2/bb)*integrate(g0expr*cos(lamn*yvar),yvar,0,bb),
+        gan:(2/bb)*integrate(gaexpr*cos(lamn*yvar),yvar,0,bb),
+        Fn:f0n*sinh(alphn*(yvar-bb))/(alphn*cosh(alphn*bb))+fbn*cosh(alphn*yvar)/cosh(alphn*bb),
+        Gn:g0n*sinh(lamn*(xvar-aa))/(lamn*cosh(lamn*aa))+gan*cosh(lamn*xvar)/cosh(lamn*aa),
+        ans:sum(Fn*cos(alphn*xvar),n,1,NN)+sum(Gn*cos(lamn*yvar),n,1,NN),
+        remove(n,integer),
+        return(ans)
+    )
+    /*P11*/
+    elseif  (is(alpha=1) and is(beta=0) and is(gamma=1) and is(delta=1)) then(
+        declare(n,integer),
+        lamn:(2*n-1)*%pi/(2*bb),
+        alphn:n*%pi/aa,
+        [[f00,f0n],svf0]:fouriercoscoeff(f0expr,xvar,aa),
+        [[fb0,fbn],svfb]:fouriercoscoeff(fbexpr,xvar,aa),
+        g0n:(2/bb)*integrate(g0expr*cos(lamn*yvar),yvar,0,bb),
+        gan:(2/bb)*integrate(gaexpr*cos(lamn*yvar),yvar,0,bb),
+        F0:f00*(yvar-bb)+fb0,
+        Fn:f0n*sinh(alphn*(yvar-bb))/(alphn*cosh(alphn*bb))+fbn*cosh(alphn*yvar)/cosh(alphn*bb),
+        Gn:-g0n*cosh(lamn*(aa-xvar))/(lamn*sinh(lamn*aa))+gan*cosh(lamn*xvar)/(lamn*sinh(lamn*aa)),
+        if emptyp(svf0) and emptyp(svfb) then(
+            ans:sum(Gn*cos(lamn*yvar),n,1,NN)+fouriercoscoeff_expand([[F0,Fn],[]],xvar,aa,NN),
+            remove(n,integer),
+            return(ans)
+        ) else(
+            indxsvf0:map(first,svf0), indxsvfb:map(first,svfb),
+            indxsvF:unique(append(indxsvf0,indxsvfb)),
+            svF:map(lambda([e],[e,aa*evalsv_scn(f0n,svf0,indxsvf0,e)*sinh(e*%pi*(yvar-bb)/aa)/(e*%pi*cosh(e*%pi*bb/aa))
+                    +evalsv_scn(fbn,svfb,indxsvfb,e)*cosh(e*%pi*yvar/aa)/cosh(e*%pi*bb/aa)]),indxsvF),
+            ans:sum(Gn*cos(lamn*yvar),n,1,NN)+fouriercoscoeff_expand([[F0,Fn],svF],xvar,aa,NN),
+            remove(n,integer),
+            return(ans)
+        )
+    )
+    /*P12, calls P3*/
+    elseif  (is(alpha=1) and is(beta=1) and is(gamma=0) and is(delta=0)) then
+    return(mixed_laplace_rectangle(0,0,1,1,g0expr,gaexpr,f0expr,fbexpr,bb,aa,yvar,xvar,NN))
+    /*P13,calls P7*/
+    elseif  (is(alpha=1) and is(beta=1) and is(gamma=0) and is(delta=1)) then
+    return(mixed_laplace_rectangle(0,1,1,1,g0expr,gaexpr,f0expr,fbexpr,bb,aa,yvar,xvar,NN))
+    /*P14,calls P11*/
+    elseif  (is(alpha=1) and is(beta=1) and is(gamma=1) and is(delta=0)) then
+    return(mixed_laplace_rectangle(1,0,1,1,g0expr,gaexpr,f0expr,fbexpr,bb,aa,yvar,xvar,NN))
+    else error("Something is wrong with alpha,beta,gamma,delta. Check boundary conditions.")
+)$
