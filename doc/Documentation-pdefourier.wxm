@@ -444,11 +444,6 @@ fouriercoeff(absolute0(x),x,1);
 
 
 /* [wxMaxima: input   start ] */
-syntactic_factor(%);
-/* [wxMaxima: input   end   ] */
-
-
-/* [wxMaxima: input   start ] */
 heaviside0(x):=if (  x>=-1 and x<0 ) then 0 elseif (0<=x and x<=1) then 1$
 /* [wxMaxima: input   end   ] */
 
@@ -921,12 +916,17 @@ with singular values in their coefficients.
 
 
 /* [wxMaxima: input   start ] */
-fouriercoeff(x^2*cos(4*x),x,%pi);
+expr:x^2*cos(4*x);
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-fourier_series(x^2*cos(4*x),x,%pi,inf);
+fouriercoeff(expr,x,%pi);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+fourier_series(expr,x,%pi,inf);
 /* [wxMaxima: input   end   ] */
 
 
@@ -936,12 +936,17 @@ As we can see, 'fourier_series' reads the list of singular values and separates 
 
 
 /* [wxMaxima: input   start ] */
-series12:fourier_series(x^2*cos(4*x),x,%pi,8)$
+series12:fourier_series(expr,x,%pi,12)$
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-wxplot2d([x^2*cos(4*x),series12],[x,-%pi,%pi],[legend,false]);
+wxplot2d([expr,series12],[x,-%pi,%pi],[legend,false]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+kill(expr)$
 /* [wxMaxima: input   end   ] */
 
 
@@ -970,18 +975,10 @@ wxplot2d([ffo(t),seri6],[t,-%pi,%pi],[legend,false]);
 /* [wxMaxima: input   end   ] */
 
 
-/* [wxMaxima: section start ]
-Troubleshooting I
-   [wxMaxima: section end   ] */
-
-
 /* [wxMaxima: comment start ]
-Here we face a problem: the Fourier coefficients contain the function 'gamma_incomplete',
-which introduces complex numbers. They should dissapear, because the final result must
-be real, but due to rounding errors some of them survive with a very small absolute value.
-This is enough to prevent 'plot2d' from plotting the graphics (This example comes from a web
+This example comes from a web
 page whose URL we don't remember. If you are the owner of that page and are reading this,
-please let us know to get proper recognition):
+please let us know to get proper recognition:
    [wxMaxima: comment end   ] */
 
 
@@ -997,19 +994,6 @@ series10:fourier_series(d(x),x,%pi,15)$
 
 /* [wxMaxima: input   start ] */
 expand(series10),numer;
-/* [wxMaxima: input   end   ] */
-
-
-/* [wxMaxima: comment start ]
-To kill these terms, we can employ a function 'chop' (provided in the package) analogous to
-the 'Chop[]' encountered in Mathematica. By default, 'chop' discards terms of absolute value
-less than 10^(-12). An additional argument can be supplied, as in 'chop(expr,exponent)', to
-chop those terms whose absolute value is less that 10^(-exponent). Then everything goes fine:
-   [wxMaxima: comment end   ] */
-
-
-/* [wxMaxima: input   start ] */
-chop(%);
 /* [wxMaxima: input   end   ] */
 
 
@@ -1326,12 +1310,12 @@ pwintegrate(partsg,x);
 
 
 /* [wxMaxima: comment start ]
-'searchpoles' looks for singular values for n in the Fourier development of an expression:
+'searchsv' looks for singular values for n in the Fourier development of an expression:
    [wxMaxima: comment end   ] */
 
 
 /* [wxMaxima: input   start ] */
-searchpoles(3*x^4*sin(x)^5+x^2*cos(4*x),x,%pi);
+searchsv(3*x^4*sin(x)^5+x^2*cos(4*x),x,%pi);
 /* [wxMaxima: input   end   ] */
 
 
@@ -1341,7 +1325,7 @@ Indeed, notice that
 
 
 /* [wxMaxima: input   start ] */
-expand(trigrat(3*x^4*sin(x)^5+x^2*cos(4*x)));
+expand(trigreduce(3*x^4*sin(x)^5+x^2*cos(4*x)));
 /* [wxMaxima: input   end   ] */
 
 
@@ -1360,7 +1344,7 @@ w(x):=if (-1<=x and x<-1/2) then sin(2*x)+1
 
 
 /* [wxMaxima: input   start ] */
-searchpoles(w(x),x,1);
+searchsv(w(x),x,1);
 /* [wxMaxima: input   end   ] */
 
 
@@ -1374,7 +1358,7 @@ w2(x):=if (-1<=x and x<-1/2) then sin(2*%pi*x)+1
 
 
 /* [wxMaxima: input   start ] */
-searchpoles(w2(x),x,1);
+searchsv(w2(x),x,1);
 /* [wxMaxima: input   end   ] */
 
 
@@ -2512,11 +2496,11 @@ expr2:dirichlet_laplace_disk(1,h(theta),theta,10);
 
 
 /* [wxMaxima: input   start ] */
-wxdraw3d(view=[64,14],surface_hide=true,zrange=[-2,2],nticks=200,
-       color=orange,
+wxdraw3d(view=[53,27],surface_hide=true,axis_3d=false,
+       color=orange, xu_grid=50,yv_grid=50,
        parametric_surface(r*cos(theta),r*sin(theta),expr2,r,0,1,theta,0,2*%pi),
-       color = blue,
-       parametric(cos(theta),sin(theta),h(theta),theta,0,4*%pi)
+       color = blue, line_width=2,nticks=200,
+       parametric(cos(theta),sin(theta),h(theta),theta,0,2*%pi)
 )$
 /* [wxMaxima: input   end   ] */
 
@@ -2712,6 +2696,11 @@ expr:neumann_laplace_wedge(1,%pi/2,ur(theta),theta,15)$;
 
 
 /* [wxMaxima: input   start ] */
+u_r1:at(diff(expr,r),r=1)$
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
 wxdraw3d(view=[67,151],surface_hide = true,
        color = orange,
        parametric_surface(r*cos(theta),r*sin(theta),expr,r,0,1,theta,0,%pi/2),
@@ -2720,7 +2709,9 @@ wxdraw3d(view=[67,151],surface_hide = true,
        parametric(t,0,0,t,0,1),
        color = blue,
        parametric(0,t,0,t,0,1)
-    /*    color=blue,
+    /*  color=blue,
+        parametric(cos(theta),sin(theta),u_r1,theta,0,%pi/2),
+        color=red,
         parametric(cos(theta),sin(theta),ur(theta),theta,0,%pi/2)*/
 )$
 /* [wxMaxima: input   end   ] */
@@ -2756,8 +2747,16 @@ wave2d_disk(1,1,f,g,3,2),numer;
 /* [wxMaxima: input   end   ] */
 
 
+/* [wxMaxima: comment start ]
+Here we can employ the function 'chop' (provided in the package) analogous to
+the 'Chop[]' encountered in Mathematica, to avoid rounding errors in the plot function. By default, 'chop' discards terms of absolute value
+less than 10^(-12). An additional argument can be supplied, as in 'chop(expr,exponent)', to
+chop those terms whose absolute value is less that 10^(-exponent). 
+   [wxMaxima: comment end   ] */
+
+
 /* [wxMaxima: input   start ] */
-expr:chop(%,12)$
+expr:chop(%,12);
 /* [wxMaxima: input   end   ] */
 
 
