@@ -185,7 +185,7 @@ foucoeffterm(term,var,p):=block(
     elseif piecewisep(term) then(
     /*Check if the domain is valid*/
     if is(bounded_ext(pw2list(term,var))=2*p) then
-    return(foucoeffpw(map(lambda([e],[e[1],expand(trigrat(e[2]))]),pw2list(term,var)),var))
+    return(foucoeffpw(map(lambda([e],[e[1],expand(trigreduce(e[2]))]),pw2list(term,var)),var))
     else error("Domain of the piecewise function is not valid. Read the documentation for further details")
     )
     else(
@@ -237,7 +237,7 @@ searchsv_term(term,var,p):=block(
     return(indx)
     )
     elseif piecewisep(term) then(
-    Laux:map(lambda([e],[e[1],expand(trigrat(e[2]))]),pw2list(term,var)),
+    Laux:map(lambda([e],[e[1],expand(trigreduce(e[2]))]),pw2list(term,var)),
     L:secsum2bl(Laux),
     indx_aux:map(lambda([e],trigpattern(e[2],var,p)),L),
     indx:unique(sublist(indx_aux,integerp)),
@@ -252,7 +252,7 @@ searchsv_term(term,var,p):=block(
 searchsv(expr,var,p):=block(
     [L,Laux,indx],
     Laux:sum2list(expand(expr)),
-    Laux:map(lambda([e],if not piecewisep(e) then expand(trigrat(e)) else e),Laux),
+    Laux:map(lambda([e],if not piecewisep(e) then expand(trigreduce(e)) else e),Laux),
     L:list2bl(Laux),
     indx:apply(append,map(lambda([e],searchsv_term(e,var,p)),L)),
     return(unique(indx))
@@ -261,7 +261,7 @@ searchsv(expr,var,p):=block(
 fouriercoeff(expr,var,p):=block(
     [ans,Llist,Laux,coeffsv,sv,n],
     Laux:sum2list(expand(expr)),
-    Llist:map(lambda([e],if not piecewisep(e) then expand(trigrat(e)) else e),Laux),
+    Llist:map(lambda([e],if not piecewisep(e) then expand(trigreduce(e)) else e),Laux),
     Llist:list2bl(Llist),
     ans:lsum(y,y,map(lambda([e],foucoeffterm(e,var,p)),Llist)),
     ans:ratsimp(ans),
@@ -444,7 +444,7 @@ fouriersincoeffterm(term,var,p):=block(
     elseif piecewisep(term) then(
     /*Check if the domain is valid*/
     if is(bounded_ext(pw2list(term,var))=p) then
-    return(fouriersincoeffpw(map(lambda([e],[e[1],expand(trigrat(e[2]))]),pw2list(term,var)),var))
+    return(fouriersincoeffpw(map(lambda([e],[e[1],expand(trigreduce(e[2]))]),pw2list(term,var)),var))
     else error("Domain of the piecewise function is not valid. Read the documentation for further details")
     )
     else(
@@ -464,7 +464,7 @@ fouriercoscoeffterm(term,var,p):=block(
     elseif piecewisep(term) then(
     /*Check if the domain is valid*/
     if is(bounded_ext(pw2list(term,var))=p) then
-    return(fouriercoscoeffpw(map(lambda([e],[e[1],expand(trigrat(e[2]))]),pw2list(term,var)),var))
+    return(fouriercoscoeffpw(map(lambda([e],[e[1],expand(trigreduce(e[2]))]),pw2list(term,var)),var))
     else error("Domain of the piecewise function is not valid. Read the documentation for further details")
     )
     else(
@@ -478,7 +478,7 @@ fouriercoscoeffterm(term,var,p):=block(
 fouriersincoeff(expr,var,p):=block(
     [ans,Llist,Laux,coeffsv,sv,n],
     Laux:sum2list(expand(expr)),
-    Llist:map(lambda([e],if not piecewisep(e) then expand(trigrat(e)) else e),Laux),
+    Llist:map(lambda([e],if not piecewisep(e) then expand(trigreduce(e)) else e),Laux),
     Llist:list2bl(Llist),
     ans:lsum(y,y,map(lambda([e],fouriersincoeffterm(e,var,p)),Llist)),
     ans:ratsimp(ans),
@@ -495,7 +495,7 @@ fouriersincoeff(expr,var,p):=block(
 fouriercoscoeff(expr,var,p):=block(
     [ans,Llist,Laux,coeffsv,sv,n],
     Laux:sum2list(expand(expr)),
-    Llist:map(lambda([e],if not piecewisep(e) then expand(trigrat(e)) else e),Laux),
+    Llist:map(lambda([e],if not piecewisep(e) then expand(trigreduce(e)) else e),Laux),
     Llist:list2bl(Llist),
     ans:lsum(y,y,map(lambda([e],fouriercoscoeffterm(e,var,p)),Llist)),
     ans:ratsimp(ans),
