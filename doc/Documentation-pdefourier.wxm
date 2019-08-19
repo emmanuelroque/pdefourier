@@ -630,11 +630,6 @@ as constants, otherwise, 'fouriercoeff' might not work as expected or return an 
 
 
 /* [wxMaxima: input   start ] */
-declare(L,real);
-/* [wxMaxima: input   end   ] */
-
-
-/* [wxMaxima: input   start ] */
 declare(L,constant);
 /* [wxMaxima: input   end   ] */
 
@@ -650,17 +645,12 @@ f1(x):=if (0<=x and x<L) then A elseif (L<=x and x<=2*L) then 0$
 
 
 /* [wxMaxima: input   start ] */
-syntactic_factor(fouriercoeff(f1(x),x,L));
+fouriercoeff(f1(x),x,L);
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
 forget(L>0);
-/* [wxMaxima: input   end   ] */
-
-
-/* [wxMaxima: input   start ] */
-remove(L,real);
 /* [wxMaxima: input   end   ] */
 
 
@@ -1190,7 +1180,7 @@ g(x):=if (0<=x and x<=L) then x^3$
 
 
 /* [wxMaxima: input   start ] */
-syntactic_factor(fouriercoscoeff(g(x),x,L));
+fouriercoscoeff(g(x),x,L);
 /* [wxMaxima: input   end   ] */
 
 
@@ -1245,17 +1235,17 @@ apply1(%,rul1,rul2);
 
 
 /* [wxMaxima: input   start ] */
-forget(L>0);
+forget(L>0)$
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-remove(L,real);
+remove(L,real)$
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-remove(L,constant);
+remove(L,constant)$
 /* [wxMaxima: input   end   ] */
 
 
@@ -2550,29 +2540,29 @@ b:2$
 
 
 /* [wxMaxima: input   start ] */
-f(theta):=if (-%pi<theta and theta<%pi) then (cos(theta))^2$
+f(%theta):=if (-%pi<%theta and %theta<%pi) then (cos(%theta))^2$
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-g(theta):=if (-%pi<theta and theta<%pi) then 0$
+g(%theta):=if (-%pi<%theta and %theta<%pi) then 0$
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
-expr:dirichlet_laplace_annulus(a,b,f(theta),g(theta),theta,4);
+expr:dirichlet_laplace_annulus(a,b,f(%theta),g(%theta),%theta,4);
 /* [wxMaxima: input   end   ] */
 
 
 /* [wxMaxima: input   start ] */
 wxdraw3d(view=[60,19],surface_hide = true,zrange=[-1.5,1.5],
        color = orange,
-       parametric_surface(r*cos(theta),r*sin(theta),expr,r,1,2,theta,0,2*%pi),
+       parametric_surface(r*cos(%theta),r*sin(%theta),expr,r,1,2,%theta,0,2*%pi),
         line_width  = 2,
        color = red,
-       parametric(a*cos(theta),a*sin(theta),g(theta),theta,-%pi,%pi),
+       parametric(a*cos(%theta),a*sin(%theta),g(%theta),%theta,-%pi,%pi),
        color = blue,
-       parametric(b*cos(theta),b*sin(theta),f(theta),theta,-%pi,%pi)
+       parametric(b*cos(%theta),b*sin(%theta),f(%theta),%theta,-%pi,%pi)
 )$
 /* [wxMaxima: input   end   ] */
 
@@ -3139,6 +3129,12 @@ h2(t):=0$
 /* [wxMaxima: input   start ] */
 mixed_heat(Q(x,t),F(x),1,1,1,1,h1(t),h2(t),x,t,L,k,inf);
 /* [wxMaxima: input   end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
 
 
 /* [wxMaxima: input   start ] */
@@ -3179,6 +3175,9 @@ h2(t):=B$
 /* [wxMaxima: input   start ] */
 mixed_heat(Q(x,t),F(x),1,0,0,1,h1(t),h2(t),x,t,L,k,inf);
 /* [wxMaxima: input   end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
 
 
 /* [wxMaxima: input   start ] */
@@ -3254,6 +3253,15 @@ h2(t):=0$
 /* [wxMaxima: input   start ] */
 mixed_heat(Q(x,t),F(x),0,1,0,1,h1(t),h2(t),x,t,L,k,inf);
 /* [wxMaxima: input   end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
 
 
 /* [wxMaxima: input   start ] */
@@ -3300,6 +3308,12 @@ h2(t):=0$
 /* [wxMaxima: input   start ] */
 mixed_heat(Q(x,t),F(x),0,1,0,1,h1(t),h2(t),x,t,L,k,inf);
 /* [wxMaxima: input   end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
+/* [wxMaxima: answer  start ] */
+p;
+/* [wxMaxima: answer  end   ] */
 
 
 /* [wxMaxima: input   start ] */
