@@ -16,7 +16,7 @@ Also, the package can solve the two-dimensional Laplace equation for a variety o
 (1-&gamma;)u(0,y) + &gamma;u<sub>x</sub>(0,y) = g<sub>0</sub>(y), 0 &le; y &le; b<br>
 (1-&delta;)u(a,y) + &delta;u<sub>x</sub>(a,y) = g<sub>a</sub>(y), 0 &le; y &le; b<br>
 </p>
-where &alpha;,&beta;,&gamma;,&delta; &isin; [0,1].
+where &alpha;,&beta;,&gamma;,&delta; &isin; {0,1}.
 
 Of course, in all cases it is possible to truncate a series to make numerical calculations.
 
