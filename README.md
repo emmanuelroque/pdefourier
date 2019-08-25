@@ -9,4 +9,4 @@ Also, the package can solve the two-dimensional Laplace equation for a variety o
 
 Of course in all cases it is possible to truncate a series to make numerical calculations.
 
-Note: pdefourier automatically loads other packages, including piecewise, draw, simplify_sum, and syntactic factor. The Maxima package syntactic_factor was written by Stavros Macrackis. Currently, pdefourier loads the files piecewise.mac and syntactic_factor contained in this repo folder.
+**Remark**: `pdefourier` automatically loads other packages, including `piecewise`, `draw`, `simplify_sum`, and `syntactic_factor`. The Maxima package `syntactic_factor` was written by Stavros Macrackis. Currently, `pdefourier` loads the files `piecewise` and `syntactic_factor` contained in this repository.
