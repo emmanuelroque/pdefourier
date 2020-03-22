@@ -82,8 +82,9 @@ Mathematica&trade; can not solve it, but Maple&trade; does. In case you want to 
 given here with that of Maple&trade;'s, please notice that
 <p align="left">
 <code>(%i17)	fouriersin_series((a*L^2*x-a*x^3)/6,x,L,inf);</code><br>
-<code>(%o17)
+<code>(%o17)</code>
 </p>
 <a href="https://www.codecogs.com/eqnedit.php?latex=\frac{2&space;{{L}^{3}}&space;a\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{{{\left(&space;-1\right)&space;}^{n&plus;1}}&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}}{{{\ensuremath{\pi}&space;}^{3}}}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\frac{2&space;{{L}^{3}}&space;a\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{{{\left(&space;-1\right)&space;}^{n&plus;1}}&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}}{{{\ensuremath{\pi}&space;}^{3}}}" title="\frac{2 {{L}^{3}} a\, \sum_{n=1}^{\infty }{\left. \frac{{{\left( -1\right) }^{n+1}} \sin{\left( \frac{\ensuremath{\pi} n x}{L}\right) }}{{{n}^{3}}}\right.}}{{{\ensuremath{\pi} }^{3}}}" /></a>
 <p align="left">
 <code>(%i18)	kill(T,f,g,bb1,bb2)$</code><br>
+</p>
