@@ -120,6 +120,6 @@ To get a graphical representation of the solution, we can truncate the series so
 <code>	       color = blue,</code><br>
 <code>	       parametric(0,t,0,t,0,1)</code><br>
 <code>	)$</code><br>
-<code>(%t23)	 
+<code>(%t23)</code><br>	 
 </p>
 ![Neumann problem for Laplace equation on a wedge](images/Neumann-Laplace.png?raw=true) 
