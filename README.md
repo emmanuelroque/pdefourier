@@ -122,4 +122,4 @@ To get a graphical representation of the solution, we can truncate the resulting
 <code>	)$</code><br>
 <code>(%t23)</code><br>	 
 </p>
-![Neumann problem for Laplace equation on a wedge](img/Neumann-Laplace.png) 
+![Neumann problem for Laplace equation on a wedge](./blob/master/img/Neumann-Laplace.png?raw=true) 
