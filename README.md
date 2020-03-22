@@ -105,3 +105,21 @@ The solution is readily found:
 <code>(%o20)</code><br>
 </p>
 <a href="https://www.codecogs.com/eqnedit.php?latex=-\frac{R\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{\left(&space;{{\left(&space;-1\right)&space;}^{n}}-1\right)&space;\,&space;{{\left(&space;\frac{r}{R}\right)&space;}^{2&space;n}}&space;\sin{\left(&space;2&space;n&space;\theta\right)&space;}}{{{n}^{2}}-4}\right.}}{\ensuremath{\pi}&space;}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?-\frac{R\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{\left(&space;{{\left(&space;-1\right)&space;}^{n}}-1\right)&space;\,&space;{{\left(&space;\frac{r}{R}\right)&space;}^{2&space;n}}&space;\sin{\left(&space;2&space;n&space;\theta\right)&space;}}{{{n}^{2}}-4}\right.}}{\ensuremath{\pi}&space;}" title="-\frac{R\, \sum_{n=1}^{\infty }{\left. \frac{\left( {{\left( -1\right) }^{n}}-1\right) \, {{\left( \frac{r}{R}\right) }^{2 n}} \sin{\left( 2 n \theta\right) }}{{{n}^{2}}-4}\right.}}{\ensuremath{\pi} }" /></a>
+
+To get a graphical representation of the solution, we can truncate the series solution:
+
+<p align="left">
+<code>(%i21)	expr:neumann_laplace_wedge(1,%pi/2,ur(theta),theta,15)$</code><br>
+<code>(%i22)	u_r1:at(diff(expr,r),r=1)$</code><br>
+<code>(%i23)	draw3d(view=[67,151],surface_hide = true,</code><br>
+<code>	       color = orange,</code><br>
+<code>	       parametric_surface(r*cos(theta),r*sin(theta),expr,r,0,1,theta,0,%pi/2),</code><br>
+<code>	       line_width  = 3,</code><br>
+<code>	       color = blue,</code><br>
+<code>	       parametric(t,0,0,t,0,1),</code><br>
+<code>	       color = blue,</code><br>
+<code>	       parametric(0,t,0,t,0,1)</code><br>
+<code>	)$</code><br>
+<code>(%t23)	 
+</p>
+ 
