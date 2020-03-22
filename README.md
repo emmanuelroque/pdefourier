@@ -24,7 +24,7 @@ Of course, in all cases it is possible to truncate a series to make numerical ca
 
 **Example 1** Consider the problem
 <p align="left">
- u<sub>t</sub>+&kappa; u<sub>xx</sub>=0 <br>
+ u<sub>t</sub>+&kappa; u<sub>xx</sub>=0, x&isin;[0,L], t>0 <br>
  u(x,0)=1-x<sup>3</sup>/4<br>
  u<sub>x</sub>(0,t)=0<br>
  u<sub>x</sub>(1,t)=-u(1,t)<br>
@@ -47,7 +47,7 @@ We solve it with the following commands:
 <code>(%i7)	kill(Q,F,h1,h2)$</code><br>
 </p>
 
-**Example 2** Consider the following problem for the wave equation
+**Example 2** Consider the following problem for the wave equation in (x,t)&isin;[0,L] x [0,&infin;[:
 <p align="left">
  u<sub>tt</sub>=c<sup>2</sup> u<sub>xx</sub>+ax <br>
  u(L,0)=0=u(0,t)<br>
@@ -88,3 +88,20 @@ given here with that of Maple&trade;'s, please notice that
 <p align="left">
 <code>(%i18)	kill(T,f,g,bb1,bb2)$</code><br>
 </p>
+
+ **Example 3** This is a  Neumann problem for the Laplace equation on a wedge defined by 0<&theta;<&pi;/2, 0<r<1:
+<p align="left">
+ &Delta;u=0 <br>
+ u(r,0)=0=u(r,a) <br>
+ u<sub>r</sub>(&theta;,r)= cos(4&theta;)<br>
+</p>
+
+The solution is readily found:
+
+<p align="left">
+<code>(%i19)	ur(theta):= if (0<=theta and theta<=%pi/2) then cos(4*theta)$</code><br>
+<code>(%i20)	neumann_laplace_wedge(R,%pi/2,ur(theta),theta,inf);</code><br>
+<code>The sum is over &#x2115;-{2}</code><br>
+<code>(%o20)</code><br>
+</p>
+<a href="https://www.codecogs.com/eqnedit.php?latex=-\frac{R\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{\left(&space;{{\left(&space;-1\right)&space;}^{n}}-1\right)&space;\,&space;{{\left(&space;\frac{r}{R}\right)&space;}^{2&space;n}}&space;\sin{\left(&space;2&space;n&space;theta\right)&space;}}{{{n}^{2}}-4}\right.}}{\ensuremath{\pi}&space;}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?-\frac{R\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{\left(&space;{{\left(&space;-1\right)&space;}^{n}}-1\right)&space;\,&space;{{\left(&space;\frac{r}{R}\right)&space;}^{2&space;n}}&space;\sin{\left(&space;2&space;n&space;theta\right)&space;}}{{{n}^{2}}-4}\right.}}{\ensuremath{\pi}&space;}" title="-\frac{R\, \sum_{n=1}^{\infty }{\left. \frac{\left( {{\left( -1\right) }^{n}}-1\right) \, {{\left( \frac{r}{R}\right) }^{2 n}} \sin{\left( 2 n \ensuremath{\theta}\right) }}{{{n}^{2}}-4}\right.}}{\ensuremath{\pi} }" /></a>
