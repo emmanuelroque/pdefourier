@@ -106,7 +106,7 @@ The solution is readily found:
 </p>
 <a href="https://www.codecogs.com/eqnedit.php?latex=-\frac{R\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{\left(&space;{{\left(&space;-1\right)&space;}^{n}}-1\right)&space;\,&space;{{\left(&space;\frac{r}{R}\right)&space;}^{2&space;n}}&space;\sin{\left(&space;2&space;n&space;\theta\right)&space;}}{{{n}^{2}}-4}\right.}}{\ensuremath{\pi}&space;}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?-\frac{R\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{\left(&space;{{\left(&space;-1\right)&space;}^{n}}-1\right)&space;\,&space;{{\left(&space;\frac{r}{R}\right)&space;}^{2&space;n}}&space;\sin{\left(&space;2&space;n&space;\theta\right)&space;}}{{{n}^{2}}-4}\right.}}{\ensuremath{\pi}&space;}" title="-\frac{R\, \sum_{n=1}^{\infty }{\left. \frac{\left( {{\left( -1\right) }^{n}}-1\right) \, {{\left( \frac{r}{R}\right) }^{2 n}} \sin{\left( 2 n \theta\right) }}{{{n}^{2}}-4}\right.}}{\ensuremath{\pi} }" /></a>
 
-To get a graphical representation of the solution, we can truncate the series solution:
+To get a graphical representation of the solution, we can truncate the resulting series:
 
 <p align="left">
 <code>(%i21)	expr:neumann_laplace_wedge(1,%pi/2,ur(theta),theta,15)$</code><br>
