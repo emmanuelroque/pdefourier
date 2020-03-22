@@ -77,6 +77,7 @@ We can simplify the output a little bit:
 <code>(%o16)</code><br>
 </p>
 <a href="https://www.codecogs.com/eqnedit.php?latex=\frac{2L^3a}{\pi^3&space;c^2}\sum_{n=1}^{\infty&space;}{\left.&space;\frac{{{\left(&space;-1\right)&space;}^{n}}\,&space;\left(&space;\cos{\left(&space;\frac{\ensuremath{\pi}&space;c&space;n&space;t}{L}\right)&space;}-1\right)&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\frac{2L^3a}{\pi^3&space;c^2}\sum_{n=1}^{\infty&space;}{\left.&space;\frac{{{\left(&space;-1\right)&space;}^{n}}\,&space;\left(&space;\cos{\left(&space;\frac{\ensuremath{\pi}&space;c&space;n&space;t}{L}\right)&space;}-1\right)&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}" title="\frac{2L^3a}{\pi^3 c^2}\sum_{n=1}^{\infty }{\left. \frac{{{\left( -1\right) }^{n}}\, \left( \cos{\left( \frac{\ensuremath{\pi} c n t}{L}\right) }-1\right) \sin{\left( \frac{\ensuremath{\pi} n x}{L}\right) }}{{{n}^{3}}}\right.}" /></a>
+
 Mathematica&trade; can not solve it, but Maple&trade; does. In case you want to compare the output
 given here with that of Maple&trade;'s, please notice that
 <p align="left">
