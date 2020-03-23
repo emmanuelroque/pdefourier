@@ -9,8 +9,8 @@ Authors: Jose A. Vallejo
 	http://galia.fc.uaslp.mx/~jvallejo
 
         Emmanuel Roque
-        Faculty of Sciences
-        Universidad Autonoma de San Luis Potosi (Mexico)
+        Department of Mathematics
+        Cinvestav-IPN (Mexico)
 */
 
 load(simplify_sum)$
@@ -1344,8 +1344,10 @@ mixedsincoeff(fexpr,var,p):=block(
 mixed_parabolic(Qexpr,Fexpr,a1,b1,a2,b2,h1expr,h2expr,xvar,tvar,p,kap,vv,cc,NN):=block(
     [bta:cc-vv^2/(4*kap),mm:-vv/(2*kap),uu,Qaux,Faux,aa1,aa2,bb1,bb2,
     h1aux,h2aux],
-    Qaux:exp(-bta*tvar-mm*xvar)*Qexpr,
-    Faux:exp(-mm*xvar)*Fexpr,
+    if piecewisep(Qexpr) then Qaux:list2pw_expr(pwglobalproductl(pw2list(Qexpr,xvar),exp(-bta*tvar-mm*xvar)),xvar)
+    else Qaux:exp(-bta*tvar-mm*xvar)*Qexpr,
+    if piecewisep(Fexpr) then Faux:list2pw_expr(pwglobalproductl(pw2list(Fexpr,xvar),exp(-mm*xvar)),xvar)
+    else Faux:exp(-mm*xvar)*Fexpr,
     aa1:a1+b1*mm,
     bb1:b1,
     aa2:exp(mm*p)*(a2+b2*mm),
