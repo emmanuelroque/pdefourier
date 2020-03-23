@@ -1359,18 +1359,24 @@ mixed_parabolic(Qexpr,Fexpr,a1,b1,a2,b2,h1expr,h2expr,xvar,tvar,p,kap,vv,cc,NN):
 )$
 
 dirichlet_poisson_rectangle(Qexpr,aa,bb,f1expr,f2expr,g1expr,g2expr,var1,var2,NN):=block(
-    [bnQ,un,svQ,indxpQ,ans,svU,eq,bnaux],
+    [bnQ,un,svQ,indxpQ,ans,svU,eq,bnaux,n],
+    declare(n,integer),
+    assume(n>0),
     [[bnQ],svQ]:fouriersincoeff(Qexpr,var1,aa),
     eq:'diff(bny,var2,2)-(n*%pi/aa)^2*bny=bnQ,
     un:rhs(bc2(ode2(eq,bny,var2),var2=0,bny=0,var2=bb,bny=0)),
     if emptyp(svQ) then (
-        ans:syntactic_factor(fouriersincoeff_expand([[un],[]],var1,aa,NN))
-               +dirichlet_laplace_rectangle(aa,bb,f1expr,f2expr,g1expr,g2expr,var1,var2,NN),
+        ans:syntactic_factor(fouriersincoeff_expand([[un],[]],var1,aa,NN))+
+           dirichlet_laplace_rectangle(aa,bb,f1expr,f2expr,g1expr,g2expr,var1,var2,NN),
+        remove(n,integer),
+        forget(n>0),
         return(ans))
     else(
         indxpQ:map(first,svQ),
         svU:map(lambda([e],[e,rhs(bc2(ode2('diff(bny,var2,2)-(e*%pi/aa)^2*bny=evalsv_scn(bnQ,svQ,indxpQ,e),bny,var2),var2=0,bny=0,var2=bb,bny=0))]),indxpQ),
         ans:syntactic_factor(fouriersincoeff_expand([[un],svU],var1,aa,NN))+
                dirichlet_laplace_rectangle(aa,bb,f1expr,f2expr,g1expr,g2expr,var1,var2,NN),
+        remove(n,integer),
+        forget(n>0),
         return(ans))
     )$
