@@ -1341,3 +1341,17 @@ mixedsincoeff(fexpr,var,p):=block(
         )
 )$
 
+mixed_parabolic(Qexpr,Fexpr,a1,b1,a2,b2,h1expr,h2expr,xvar,tvar,p,kap,vv,cc,NN):=block(
+    [bta:cc-vv^2/(4*kap),mm:-vv/(2*kap),uu,Qaux,Faux,aa1,aa2,bb1,bb2,
+    h1aux,h2aux],
+    Qaux:exp(-bta*tvar-mm*xvar)*Qexpr,
+    Faux:exp(-mm*xvar)*Fexpr,
+    aa1:a1+b1*mm,
+    bb1:b1,
+    aa2:exp(mm*p)*(a2+b2*mm),
+    bb2:b2*exp(mm*p),
+    h1aux:exp(-bta*tvar)*h1expr,
+    h2aux:exp(-bta*tvar)*h2expr,
+    uu:mixed_heat(Qaux,Faux,aa1,bb1,aa2,bb2,h1aux,h2aux,xvar,tvar,p,kap,NN),
+    uu*exp(bta*tvar+mm*xvar)
+)$
