@@ -76,7 +76,8 @@ We can simplify the output a little bit:
 <code>(%i16)	factor(%);</code><br>
 <code>(%o16)</code><br>
 </p>
-![Example 2-2](img/Example2-2.png?raw=true) 
+![Example 2-2](img/Example2-2.png?raw=true)
+
 Mathematica&trade; can not solve it, but Maple&trade; does. In case you want to compare the output
 given here with that of Maple&trade;'s, please notice that
 <p align="left">
