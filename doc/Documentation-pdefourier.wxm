@@ -1,5 +1,5 @@
 /* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
-/* [ Created with wxMaxima version 19.02.0-DevelopmentSnapshot ] */
+/* [ Created with wxMaxima version 19.07.0 ] */
 /* [wxMaxima: title   start ]
 pdefourier: A Maxima package to study Fourier series
 and partial differential equations
@@ -8,15 +8,11 @@ and partial differential equations
 
 /* [wxMaxima: comment start ]
 José Antonio Vallejo
-Faculty of Sciences
-State University of San Luis Potosí (México)
 email: jvallejo@fc.uaslp.mx
 URL hhtp://galia.fc.uaslp.mx/~jvallejo
 
 Emmanuel Roque
-Faculty of Sciences
-State University of San Luis Potosí (México)
-email: emmanuelroquej@protonmail.ch
+email: earoque@math.cinvestav.mx
    [wxMaxima: comment end   ] */
 
 
@@ -41,9 +37,9 @@ Preliminaries
 
 /* [wxMaxima: comment start ]
 First of all, we load the package (assuming that the file 'pdefourier.mac' has been
-copied to /usr/share/maxima/5.37.3/share/contrib or something similar, depending
+copied to /usr/share/maxima/5.42.1/share/contrib or something similar, depending
 on the version and the operating system. In Windows probably it will be the location
-c:\Program files (x86)\Maxima-sbcl-5.37.3/share/maxima/5.37.3/share/contrib).
+c:\Program files (x86)\Maxima-sbcl-5.42.1/share/maxima/5.42.1/share/contrib).
 Another possibility is to keep a copy in the working directory.
 It automatically calls other packages (such as draw). In the command below, type
 "nul" instead of "/dev/null" when working on a Windows machine:
@@ -3660,4 +3656,4 @@ nonzero;
 
 
 /* Old versions of Maxima abort on loading files that end in a comment. */
-"Created with wxMaxima 19.02.0-DevelopmentSnapshot"$
+"Created with wxMaxima 19.07.0"$

@@ -42,8 +42,8 @@ This is a problem involving mixed initial and boundary conditions. The command w
 
 <p align="center">
 <code>
- mixed_heat(Q(x),F(x),&alpha;<sub>1</sub>,&beta;<sub>1</sub>,&alpha;<sub>2</sub>,&beta;<sub>2</sub>,h<sub>1</sub>(tvar),h<sub>2</sub>(tvar),xvar,tvar,L,&kappa;,ord)</code> 
-</p> 
+ mixed_heat(Q(x),F(x),&alpha;<sub>1</sub>,&beta;<sub>1</sub>,&alpha;<sub>2</sub>,&beta;<sub>2</sub>,h<sub>1</sub>(tvar),h<sub>2</sub>(tvar),xvar,tvar,L,&kappa;,ord)</code>
+</p>
 
 where `ord` can be `inf` or a positive integer. In the first case, the solution is given in the form of a Fourier series;
 in the second, as a series truncated to order `ord`.
@@ -54,7 +54,7 @@ in the second, as a series truncated to order `ord`.
  u(x,0)=1-x<sup>3</sup>/4<br>
  u<sub>x</sub>(0,t)=0<br>
  u<sub>x</sub>(1,t)=-u(1,t)<br>
-</p> 
+</p>
 
 Physically, it corresponds to the heat propagation in a bar where the left end is insulated, and
 the right end has convection heat loss.
@@ -68,8 +68,8 @@ We solve it with the following commands:
 <code>(%i5)	h2(t):=0$</code><br>
 <code>(%i6)	mixed_heat(Q(x,t),F(x),0,1,1,1,h1(t),h2(t),x,t,1,k,inf);</code><br>
 <code>(%o6)	%lambda[n] are the solutions of %lambda[n]*cos(%lambda[n])-%lambda[n]^2*sin(%lambda[n])=0</code><br>
-![Example 1](img/Example1.png?raw=true) 
-<p align="left"> 
+![Example 1](img/Example1.png?raw=true)
+<p align="left">
 <code>(%i7)	kill(Q,F,h1,h2)$</code><br>
 </p>
 
@@ -89,8 +89,8 @@ The command in this case is `mixed_wave`, with syntax
 
 <p align="center">
 <code>
- mixed_wave(T(x,t),f(x),g(x),&alpha;<sub>1</sub>,&beta;<sub>1</sub>,&alpha;<sub>2</sub>,&beta;<sub>2</sub>,b<sub>1</sub>(tvar),b<sub>2</sub>(tvar),xvar,tvar,L,c,ord)</code> 
-</p> 
+ mixed_wave(T(x,t),f(x),g(x),&alpha;<sub>1</sub>,&beta;<sub>1</sub>,&alpha;<sub>2</sub>,&beta;<sub>2</sub>,b<sub>1</sub>(tvar),b<sub>2</sub>(tvar),xvar,tvar,L,c,ord)</code>
+</p>
 
 **Example 2** Consider the following problem for the wave equation in (x,t)&isin;[0,L] x [0,&infin;[:
 <p align="left">
@@ -98,7 +98,7 @@ The command in this case is `mixed_wave`, with syntax
  u(L,0)=0=u(0,t)<br>
  u<sub>x</sub>(0,t)=0<br>
  u<sub>t</sub>(x,0)=0=u(x,0)<br>
-</p> 
+</p>
 
 This is Example 4.31 in J. D. Logan's ''Applied Partial Differential Equations'' (3rd. Ed.), Springer Verlag, 2015.
 
@@ -114,7 +114,7 @@ The following Maxima session solves it (notice we are assuming that `load(pdefou
 <code>(%i14)	bb2(t):=0$</code><br>
 <code>(%i15)	mixed_wave(T(x,t),f(x),g(x),1,0,1,0,bb1(t),bb2(t),x,t,L,c,inf);</code><br>
 <code>(%o15)</code><br>
-![Example 2-1](img/Example2-1.png?raw=true) 
+![Example 2-1](img/Example2-1.png?raw=true)
 </p>
 We can simplify the output a little bit:
 <p align="left">
@@ -129,7 +129,7 @@ given here with that of Maple&trade;'s, please notice that
 <code>(%i17)	fouriersin_series((a*L^2*x-a*x^3)/6,x,L,inf);</code><br>
 <code>(%o17)</code>
 </p>
-![Example 2-3](img/Example2-3.png?raw=true) 
+![Example 2-3](img/Example2-3.png?raw=true)
 <p align="left">
 <code>(%i18)	kill(T,f,g,bb1,bb2)$</code><br>
 </p>
@@ -138,11 +138,11 @@ given here with that of Maple&trade;'s, please notice that
 
 The 2D Laplace equation &Delta;u=0 can be written either in Cartesian coordinates
 <p align="left">
- &Delta;u=u<sub>xx</sub>+u<sub>yy</sub>=0 
+ &Delta;u=u<sub>xx</sub>+u<sub>yy</sub>=0
 </p>
 or in polar ones
 <p align="left">
- &Delta;u=u<sub>rr</sub>+<sup>1</sup>&frasl;<sub>r</sub>&nbsp;u<sub>r</sub>+<sup>1</sup>&frasl;<sub>r<sup>2</sup></sub>&nbsp;u<sub>&theta;&theta;</sub>=0 
+ &Delta;u=u<sub>rr</sub>+<sup>1</sup>&frasl;<sub>r</sub>&nbsp;u<sub>r</sub>+<sup>1</sup>&frasl;<sub>r<sup>2</sup></sub>&nbsp;u<sub>&theta;&theta;</sub>=0
 </p>
 
 These can be used in conjunction with Dirichlet or Neumann conditions, on a variety of domains. Accordingly, `pdefourier`
@@ -163,7 +163,7 @@ The solution is readily found:
 <code>(%i20)	neumann_laplace_wedge(R,%pi/2,ur(theta),theta,inf);</code><br>
 <code>(%o20) The sum is over &#x2115;-{2}</code><br>
 </p>
-![Example 3](img/Example3.png?raw=true) 
+![Example 3](img/Example3.png?raw=true)
 
 To get a graphical representation of the solution, we can truncate the resulting series:
 
@@ -179,9 +179,9 @@ To get a graphical representation of the solution, we can truncate the resulting
 <code>	       color = blue,</code><br>
 <code>	       parametric(0,t,0,t,0,1)</code><br>
 <code>	)$</code><br>
-<code>(%t23)</code><br>	 
+<code>(%t23)</code><br>
 </p>
-![Neumann problem for Laplace equation on a wedge](img/Neumann-Laplace.png?raw=true) 
+![Neumann problem for Laplace equation on a wedge](img/Neumann-Laplace.png?raw=true)
 
 
 ## Software used
@@ -192,10 +192,8 @@ To get a graphical representation of the solution, we can truncate the resulting
 
 ## Authors
 
-* **Emmanuel Roque Jim&eacute;nez** - *Centro de Investigaci&oacute;n y Estudios Avanzados,
-Instituto Polit&eacute;cnico Nacional, M&eacute;xico* - [emmanuelroque](https://github.com/emmanuelroque)
-* **Jos&eacute; Antonio Vallejo Rodr&iacute;guez** - *Facultad de Ciencias, Universidad Aut&oacute;noma de San Luis
-Potos&iacute;, M&eacute;xico* - [josanvallejo](http://galia.fc.uaslp.mx/~jvallejo)
+* **Emmanuel Roque Jim&eacute;nez** - [emmanuelroque](https://github.com/emmanuelroque)
+* **Jos&eacute; Antonio Vallejo Rodr&iacute;guez** - [josanvallejo](http://galia.fc.uaslp.mx/~jvallejo)
 
 
 
@@ -205,5 +203,5 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## Acknowledgments
 
-* Thanks to the Maxima's developers team, for maintaining such a wonderful software 
-* Tanks to the [KeTCindy](https://ctan.org/pkg/ketcindy) team, particularly its main developer Setsuo Takato, for their support
+* Thanks to the Maxima's developers team, for maintaining such a wonderful software
+* Thanks to the [KeTCindy](https://ctan.org/pkg/ketcindy) team, particularly its main developer Setsuo Takato, for their support

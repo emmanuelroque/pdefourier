@@ -2,15 +2,9 @@
 
 pdefourier Maxima package
 Copyright 2019
-Licensed under GNU LGPL v3 (https://www.gnu.org/copyleft/lesser.html)
+Licensed under GNU GPL v3 https://www.gnu.org/licenses/gpl-3.0.html
 Authors: Jose A. Vallejo
-        Faculty of Sciences
-	Universidad Autonoma de San Luis Potosi (Mexico)
-	http://galia.fc.uaslp.mx/~jvallejo
-
-        Emmanuel Roque
-        Department of Mathematics
-        Cinvestav-IPN (Mexico)
+         Emmanuel Roque
 */
 
 load(simplify_sum)$
