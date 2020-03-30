@@ -173,13 +173,13 @@ To get a graphical representation of the solution, we can truncate the resulting
 
 ## Software used
 
-* [Maxima](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [wxMaxima](https://maven.apache.org/) - Dependency Management
+* [Maxima](http://maxima.sourceforge.net/) - Maxima, a computer algebra system
+* [wxMaxima](https://wxmaxima-developers.github.io/wxmaxima/) - wxMaxima, a graphical front-end for Maxima
 
 
 ## Authors
 
-* **Emmanuel Roque Jim&eacute;nez** - *Initial work* - [emmanuelroque](https://github.com/emmanuelroque
+* **Emmanuel Roque Jim&eacute;nez** - *Initial work* - [emmanuelroque](https://github.com/emmanuelroque)
 * **Jos&eacute; Antonio Vallejo Rodr&iacute;guez** - *Initial work* - [josanvallejo](http://galia.fc.uaslp.mx/~jvallejo)
 
 
