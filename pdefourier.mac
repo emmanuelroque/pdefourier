@@ -963,12 +963,12 @@ genfouriercoeff(fexpr,a1,b1,a2,b2,xvar,lambda,p):=block(
 )$
 
 mixed_heat(Qexpr,Fexpr,a1,b1,a2,b2,h1expr,h2expr,xvar,tvar,p,kap,NN):=block(
-[saux,dd:a1*a2*p+a1*b2+a2*b1,qaux,lamn,intXn,faux,gnq,gnf,Tn,Xn,s,n],
+[saux,dd:a1*a2*p+a1*b2-a2*b1,qaux,lamn,intXn,faux,gnq,gnf,Tn,Xn,s,n],
 if ((is(a1=0) and is(b1=0)) or (is(a2=0) and is(b2=0))) then error("Error: the problem is singular. Check boundary conditions.")
 elseif (is(a1=0) and is(a2=0)) then return(neumann_heat(Qexpr,Fexpr,h1expr/b1,h2expr/b2,xvar,tvar,kap,p,NN))
 elseif (is(b1=0) and is(b2=0)) then return(dirichlet_heat(Qexpr,Fexpr,h1expr/a1,h2expr/a2,xvar,tvar,p,kap,NN))
 else(
-    saux:(a1*h2expr-a2*h1expr)*xvar/dd+((a2*p+b2)*h1expr+b1*h2expr)/dd,
+    saux:ratsimp((a1*h2expr-a2*h1expr)*xvar/dd+((a2*p+b2)*h1expr-b1*h2expr)/dd),
     if piecewisep(Qexpr) then qaux:list2pw_expr(pwglobalsuml(pw2list(Qexpr,xvar),-diff(saux,tvar)),xvar)
         else qaux:Qexpr-diff(saux,tvar),
     if piecewisep(Fexpr) then faux:list2pw_expr(pwglobalsuml(pw2list(Fexpr,xvar),-at(saux,tvar=0)),xvar)
@@ -976,9 +976,9 @@ else(
     if (is(a1=0) and is(b2=0)) or (is(a2=0) and is(b1=0)) then(
         declare(n,integer),
         lamn:(2*n-1)*%pi/(2*p),
-        Xn:b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
+        Xn:-b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
        /* intXn:integrate(Xn*Xn,xvar,0,p) */
-        intXn:(4*a1^2*p^2+8*a1*b1*p+4*%pi^2*b1^2*n^2-4*%pi^2*b1^2*n+%pi^2*b1^2)/(8*p),
+        intXn:(4*a1^2*p^2-8*a1*b1*p+4*%pi^2*b1^2*n^2-4*%pi^2*b1^2*n+%pi^2*b1^2)/(8*p),
         gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
         gnf:genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
         Tn:exp(-kap*(lamn)^2*tvar)*factor(expand(integrate(exp(kap*(lamn)^2*s)*at(gnq,tvar=s),s,0,tvar)+gnf)),
@@ -988,7 +988,7 @@ else(
     elseif (is(a1=1) and is(b1=1)) and (is(a2=1) and is(b2=1)) then(
         declare(n,integer),
         lamn:n*%pi/p,
-        Xn:b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
+        Xn:-b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
        /* intXn:integrate(Xn*Xn,xvar,0,p) */
         intXn:(p^2+%pi^2*n^2)/(2*p),
         gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
@@ -997,20 +997,32 @@ else(
         remove(n,integer),
         saux+sum(Xn*Tn,n,1,NN)
         )
-    elseif (is(p=1) and (is(a2=1) and is(b2=0))) then (
-             lamn:%lambda[n],
-        disp(%lambda[n]," are the solutions of ",ratsimp(a1*sin(%lambda[n])+b1*%lambda[n]*cos(%lambda[n])=0)),
-        Xn:(b1*lamn/sin(lamn))*sin(lamn*(1-xvar)),
-        intXn:b1*(1-cos(lamn))/sin(lamn),
-        gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
-        gnf:genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
-        Tn:exp(-K*(lamn)^2*tvar)*(syntactic_factor(integrate(exp(K*(lamn)^2*s)*at(gnq,tvar=s),s,0,tvar)+gnf)),
+    elseif (is(a2=1) and is(b2=0)) then (
+        /* a1#0, a1=0 and b2=0 is considered above */
+        /* Notice that using the equations for the eigenvalues there are several equivalent ways
+            of writing the eigenfunctions and their norm. We leave a comment with some other
+            equivalent expressions which might be used instead */
+        lamn:%lambda[n],
+        disp(%lambda[n]," are the solutions of ",ratsimp(a1*sin(%lambda[n]*p)-b1*%lambda[n]*cos(%lambda[n]*p)=0)),
+        /*Xn:(b1*lamn/sin(lamn*p))*sin(lamn*(p-xvar)),display(Xn), */
+        Xn:(a1/cos(lamn*p))*sin(lamn*(p-xvar)),
+        /*intXn:b1^2*lamn^2*(p-b1*(cos(lamn*p))^2/a1)/(2*(sin(lamn*p))^2),display(intXn),*/
+        intXn:(a1^2/(2*cos(lamn*p)^2))*(p-b1*cos(lamn*p)^2/a1),
+        /*We won't use genfouriercoeff in this case as we are using another expression for Xn*/
+        if piecewisep(fexpr) then gnf:pwintegrate(pwglobalproductl(pw2list(faux,xvar),Xn),xvar)/intXn
+            else gnf:integrate(faux*Xn,xvar,0,p)/intXn,
+        if piecewisep(fexpr) then gnq:pwintegrate(pwglobalproductl(pw2list(qaux,xvar),Xn),xvar)/intXn
+            else gnq:integrate(qaux*Xn,xvar,0,p)/intXn,
+        /*Let's try to help the simplifier and be consistent*/
+        gnf:ratsubst(b1*lamn*cos(lamn*p),a1*sin(lamn*p),gnf),
+        gnq:ratsubst(b1*lamn*cos(lamn*p),a1*sin(lamn*p),gnq),
+        Tn:exp(-kap*(lamn)^2*tvar)*(syntactic_factor(integrate(exp(kap*(lamn)^2*s)*at(gnq,tvar=s),s,0,tvar)+gnf)),
         saux+sum(Xn*Tn,n,1,NN)
                                                                         )
     else(
         lamn:%lambda[n],
-        disp(%lambda[n]," are the solutions of ",ratsimp((a1*a2-b1*b2*(%lambda[n])^2)*sin(%lambda[n]*p)+(a1*b2+a2*b1)*%lambda[n]*cos(%lambda[n]*p)=0)),
-        Xn:b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
+        disp(%lambda[n]," are the solutions of ",ratsimp((a1*a2+b1*b2*(%lambda[n])^2)*sin(%lambda[n]*p)+(a1*b2-a2*b1)*%lambda[n]*cos(%lambda[n]*p)=0)),
+        Xn:-b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
         (
             if is(b1=0) then
             intXn:(p+(b2/a2)*(cos(p*lamn))^2)/2
