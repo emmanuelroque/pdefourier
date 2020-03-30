@@ -206,4 +206,4 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 ## Acknowledgments
 
 * Thanks to the Maxima's developers team, for maintaining such a wonderful software 
-* Tanks to the KeTCindy team for their support
+* Tanks to the [KeTCindy](https://ctan.org/pkg/ketcindy) team, particularly its main developer Setsuo Takato, for their support
