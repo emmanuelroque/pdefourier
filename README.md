@@ -179,8 +179,10 @@ To get a graphical representation of the solution, we can truncate the resulting
 
 ## Authors
 
-* **Emmanuel Roque Jim&eacute;nez** - *Initial work* - [emmanuelroque](https://github.com/emmanuelroque)
-* **Jos&eacute; Antonio Vallejo Rodr&iacute;guez** - *Initial work* - [josanvallejo](http://galia.fc.uaslp.mx/~jvallejo)
+* **Emmanuel Roque Jim&eacute;nez** - *Centro de Investigaci&oacute;n y Estudios Avanzados,
+Instituto Polit&eacute;cnico Nacional, M&eacute;xico* - [emmanuelroque](https://github.com/emmanuelroque)
+* **Jos&eacute; Antonio Vallejo Rodr&iacute;guez** - *Facultad de Ciencias, Universidad Aut&oacute;noma de San Luis
+Potos&iacute;, M&eacute;xico* - [josanvallejo](http://galia.fc.uaslp.mx/~jvallejo)
 
 
 
