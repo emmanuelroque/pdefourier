@@ -46,7 +46,7 @@ This is a problem with mixed initial and boundary conditions. The command we use
 </p> 
 
 where `ord` can be `inf` or a positive integer. In the first case, the solution is given in the form of a Fourier series;
-in the second, as a series truncated to order `ord`.I
+in the second, as a series truncated to order `ord`.
 
 **Example 1** Consider the problem
 <p align="left">
