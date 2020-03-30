@@ -123,7 +123,7 @@ We can simplify the output a little bit:
 </p>
 ![Example 2-2](img/Example2-2.png?raw=true)
 
-Mathematica&trade; can not solve it, but Maple&trade; does. In case you want to compare the output
+Mathematica&trade; (version 12.0) can not solve it, but Maple&trade; (version 2019) does. In case you want to compare the output
 given here with that of Maple&trade;'s, please notice that
 <p align="left">
 <code>(%i17)	fouriersin_series((a*L^2*x-a*x^3)/6,x,L,inf);</code><br>
