@@ -22,7 +22,7 @@ Of course, in all cases it is possible to truncate a series to make numerical ca
 
 **Remark**: `pdefourier` automatically loads other packages, including `piecewise`, `draw`, `simplify_sum`, and `syntactic_factor`. The Maxima package `syntactic_factor` was written by Stavros Macrackis. Currently, `pdefourier` loads the files `piecewise` and `syntactic_factor` contained in this repository.
 
-The [Documentation folder](doc) folder contains a wxMaxima session [wxMaxima documentation file](doc/Documentation-pdefourier.wxm) explaining in detail the funtions contained in the package, as well as their syntax.
+The [Documentation folder](doc) folder contains a Maxima session (in wxm format) [wxMaxima documentation file](doc/Documentation-pdefourier.wxm) explaining in detail the funtions contained in the package, as well as their syntax.
 Here, we only give a quick introduction to the main commands for solving typical problems.
 
 **Example 1** Consider the problem
