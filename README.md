@@ -85,7 +85,7 @@ We solve it with the following commands:
 
 This is Example 4.31 in J. D. Logan's ''Applied Partial Differential Equations'' (3rd. Ed.), Springer Verlag, 2015.
 
-The following Maxima session solves it:
+The following Maxima session solves it (notice we are assuming that `load(pdefourier)` has been already executed!):
 
 <p align="left">
 <code>(%i8)	assume(t>0)$</code><br>
