@@ -75,6 +75,23 @@ We solve it with the following commands:
 
 ### The wave equation ###
 
+Consider now the general Sturm-Liouville problem for the wave equation:
+
+<p align="left">
+ u<sub>tt</sub>=c<sup>2</sup> u<sub>xx</sub>+T(x,t) <br> with (x,t) &isin; [0,L]x&#x211d;<sup>+</sup><br>
+u(x,0)=f(x) <br>
+ u<sub>t</sub>(x,0)=g(x) <br>
+&alpha;<sub>1</sub>u(0,t) + &beta;<sub>1</sub>u<sub>x</sub>(0,t) = b<sub>1</sub>(t) <br>
+&alpha;<sub>2</sub>u(L,t) + &beta;<sub>2</sub>u<sub>x</sub>(L,t) = b<sub>2</sub>(t)
+</p>
+
+The command in this case is `mixed_wave`, with syntax
+
+<p align="center">
+<code>
+ mixed_wave(T(x,t),f(x),g(x),&alpha;<sub>1</sub>,&beta;<sub>1</sub>,&alpha;<sub>2</sub>,&beta;<sub>2</sub>,b<sub>1</sub>(tvar),b<sub>2</sub>(tvar),xvar,tvar,L,c,ord)</code> 
+</p> 
+
 **Example 2** Consider the following problem for the wave equation in (x,t)&isin;[0,L] x [0,&infin;[:
 <p align="left">
  u<sub>tt</sub>=c<sup>2</sup> u<sub>xx</sub>+ax <br>
