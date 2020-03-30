@@ -1,9 +1,8 @@
-# pdefourier
-## A package for solving partial differential equations in Maxima CAS
+# pdefourier: A package for solving partial differential equations in Maxima CAS #
 
 Fourier analysis provides a set of techniques for solving partial differential equations (PDEs) in both bounded and unbounded domains, and various types of initial conditions. In the bounded domain case, the method of separation of variables leads to a well-defined algorithm for developing the solution in a Fourier series, making this problem tractable with a CAS.
 
-### Overview ###
+## Overview ##
 
 This Maxima package computes Fourier series symbolically for piecewise-smooth functions. Using the method of separation of variables it is able to solve symbolically the one-dimensional heat and wave equations on a domain [0,L], with general boundary conditions of the form:
 <p align="left">
@@ -27,7 +26,7 @@ Of course, in all cases it is possible to truncate a series to make numerical ca
 The [Documentation folder](doc) folder contains a Maxima session (in wxm format) [wxm documentation file](doc/Documentation-pdefourier.wxm) explaining in detail the funtions contained in the package, as well as their syntax.
 Here, we only give a quick introduction to the main commands for solving typical problems.
 
-### The heat equation ###
+## The heat equation ##
 
 The general Sturm-Liouville problem for the heat equation can be expressed as
 
@@ -73,7 +72,7 @@ We solve it with the following commands:
 <code>(%i7)	kill(Q,F,h1,h2)$</code><br>
 </p>
 
-### The wave equation ###
+## The wave equation ##
 
 Consider now the general Sturm-Liouville problem for the wave equation:
 
@@ -134,7 +133,7 @@ given here with that of Maple&trade;'s, please notice that
 <code>(%i18)	kill(T,f,g,bb1,bb2)$</code><br>
 </p>
 
-### The Laplace equation ###
+## The Laplace equation ##
 
  **Example 3** The following is a  Neumann problem for the Laplace equation on a wedge defined by 0<&theta;<&pi;/2, 0<r<1:
 <p align="left">
