@@ -1089,7 +1089,7 @@ neumann_wave(Qexpr,fexpr,gexpr,h1expr,h2expr,xvar,tvar,p,cc,NN):=block(
 )$
 
 mixed_wave(Qexpr,fexpr,gexpr,a1,b1,a2,b2,h1expr,h2expr,xvar,tvar,p,cc,NN):=block(
-    [n,dd:a1*a2*L+a1*b2+a2*b1,lamn,Xn,intXn,Tn,s,gnf,gng,gnq,saux,qaux,faux,gaux],
+    [n,dd:a1*a2*p+a1*b2+a2*b1,lamn,Xn,intXn,Tn,s,gnf,gng,gnq,saux,qaux,faux,gaux],
 if ((is(a1=0) and is(b1=0)) or (is(a2=0) and is(b2=0))) then return("Error: the problem is singular. Check boundary conditions."),
 if (is(a1=0) and is(a2=0)) then (
         return(neumann_wave(Qexpr,fexpr,gexpr,h1expr/b1,h2expr/b2,xvar,tvar,p,cc,NN))
@@ -1107,7 +1107,7 @@ elseif (is(b1=0) and is(b2=0)) then (
 if ((is(a1=0) and is(b2=0)) or (is(a2=0) and is(b1=0))) then (
         declare(n,integer),
         assume(2*n-1>0),
-        lamn:(2*n-1)*%pi/(2*L),
+        lamn:(2*n-1)*%pi/(2*p),
         Xn:b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
         intXn:integrate(Xn*Xn,xvar,0,p),
         gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
@@ -1120,18 +1120,18 @@ if ((is(a1=0) and is(b2=0)) or (is(a2=0) and is(b1=0))) then (
                                                             )
     else (
         lamn:%lambda[n],
-        disp(%lambda[n]," are the solutions of ",ratsimp((a1*a2-b1*b2*(%lambda[n])^2)*sin(%lambda[n]*L)+
-                    (a1*b2+a2*b1)*%lambda[n]*cos(%lambda[n]*L)=0)),
+        disp(%lambda[n]," are the solutions of ",ratsimp((a1*a2-b1*b2*(%lambda[n])^2)*sin(%lambda[n]*p)+
+                    (a1*b2+a2*b1)*%lambda[n]*cos(%lambda[n]*p)=0)),
         Xn:b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
         (
             if is(b1=0) then
-            intXn:(L+(b2/a2)*(cos(L*lamn))^2)/2
+            intXn:(p+(b2/a2)*(cos(p*lamn))^2)/2
             else
-            intXn:integrate(Xn*Xn,xvar,0,L)
+            intXn:integrate(Xn*Xn,xvar,0,p)
         ),
-        gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,L)/intXn,
-        gnf:genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,L)/intXn,
-        gng:genfouriercoeff(gaux,a1,b1,a2,b2,xvar,lamn,L)/intXn,
+        gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
+        gnf:genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
+        gng:genfouriercoeff(gaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
         Tn:factor(radcan(expand(rhs(ic2(ode2('diff(Tn,tvar,2) + cc^2*(lamn)^2*Tn = gnq,Tn,tvar),tvar=0,Tn=gnf,'diff(Tn,tvar)=gng))))),
         saux+sum(Xn*Tn,n,1,NN)
         )
