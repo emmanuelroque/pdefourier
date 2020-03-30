@@ -38,7 +38,7 @@ u(x,0)=F(x) <br>
 &alpha;<sub>2</sub>u(L,t) + &beta;<sub>2</sub>u<sub>x</sub>(L,t) = h<sub>2</sub>(t)
 </p>
 
-This is a problem with mixed initial and boundary conditions. The command we use in this case is `mixed_heat`, with syntax
+This is a problem involving mixed initial and boundary conditions. The command we use in this case is `mixed_heat`, with syntax
 
 <p align="center">
 <code>
