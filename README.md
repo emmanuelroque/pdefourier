@@ -136,7 +136,7 @@ given here with that of Maple&trade;'s, please notice that
 
 ### The Laplace equation ###
 
- **Example 3** This is a  Neumann problem for the Laplace equation on a wedge defined by 0<&theta;<&pi;/2, 0<r<1:
+ **Example 3** The following is a  Neumann problem for the Laplace equation on a wedge defined by 0<&theta;<&pi;/2, 0<r<1:
 <p align="left">
  &Delta;u=0 <br>
  u(r,0)=0=u(r,a) <br>
