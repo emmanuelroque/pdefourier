@@ -1,16 +1,18 @@
-# pdefourier
-## A package for solving partial differential equations in Maxima CAS
+# pdefourier: A package for solving partial differential equations in Maxima CAS #
 
 Fourier analysis provides a set of techniques for solving partial differential equations (PDEs) in both bounded and unbounded domains, and various types of initial conditions. In the bounded domain case, the method of separation of variables leads to a well-defined algorithm for developing the solution in a Fourier series, making this problem tractable with a CAS.
 
-This Maxima package computes Fourier series symbolically for piecewise-smooth functions. Using the method of separation of variables it is able to solve symbolically the one-dimensional heat and wave equations on a domain [0,L], with general boundary conditions of the form:
-<p align="center">
-&alpha;<sub>1</sub>u(0,t) + &beta;<sub>1</sub>u<sub>x</sub>(0,t) = f<sub>1</sub>(t) <br>
-&alpha;<sub>2</sub>u(L,t) + &beta;<sub>2</sub>u<sub>x</sub>(L,t) = f<sub>2</sub>(t)
+## Overview ##
+
+This Maxima package computes Fourier series symbolically for piecewise-smooth functions. Using the method of separation of variables it is able to solve symbolically the one-dimensional heat and wave equations on a domain [0,L], with regular
+Sturm-Liouville conditions, that is, general boundary conditions of the form:
+<p align="left">
+&alpha;<sub>1</sub>u(0,t) + &beta;<sub>1</sub>u<sub>x</sub>(0,t) = h<sub>1</sub>(t) <br>
+&alpha;<sub>2</sub>u(L,t) + &beta;<sub>2</sub>u<sub>x</sub>(L,t) = h<sub>2</sub>(t)
 </p>
 
 Also, the package can solve the two-dimensional Laplace equation for a variety of domains (rectangles, disks, annuli, wedges) and Dirichlet and Neumann boundary conditions. In the case of a rectangular domain [0,a] x [0,b], the package can solve the Laplace equation with mixed boundary conditions of the form
-<p align="center">
+<p align="left">
 (1-&alpha;)u(x,0) + &alpha;u<sub>y</sub>(x,0) = f<sub>0</sub>(x), 0 &le; x &le; a<br>
 (1-&beta;)u(x,b) + &beta;u<sub>y</sub>(x,b) = f<sub>b</sub>(x), 0 &le; x &le; a<br>
 (1-&gamma;)u(0,y) + &gamma;u<sub>x</sub>(0,y) = g<sub>0</sub>(y), 0 &le; y &le; b<br>
@@ -22,15 +24,39 @@ Of course, in all cases it is possible to truncate a series to make numerical ca
 
 **Remark**: `pdefourier` automatically loads other packages, including `piecewise`, `draw`, `simplify_sum`, and `syntactic_factor`. The Maxima package `syntactic_factor` was written by Stavros Macrackis. Currently, `pdefourier` loads the files `piecewise` and `syntactic_factor` contained in this repository.
 
+The [Documentation folder](doc) folder contains a Maxima session (in wxm format) [wxm documentation file](doc/Documentation-pdefourier.wxm) explaining in detail the funtions contained in the package, as well as their syntax.
+Here, we only give a quick introduction to the main commands for solving typical problems.
+
+## The heat equation ##
+
+The general Sturm-Liouville problem for the heat equation can be expressed as
+
+<p align="left">
+ u<sub>t</sub>(x,t)-&kappa;u<sub>xx</sub>(x,t)=Q(x,t) with (x,t) &isin; [0,L]x&#x211d;<sup>+</sup><br>
+u(x,0)=F(x) <br>
+&alpha;<sub>1</sub>u(0,t) + &beta;<sub>1</sub>u<sub>x</sub>(0,t) = h<sub>1</sub>(t) <br>
+&alpha;<sub>2</sub>u(L,t) + &beta;<sub>2</sub>u<sub>x</sub>(L,t) = h<sub>2</sub>(t)
+</p>
+
+This is a problem involving mixed initial and boundary conditions. The command we use in this case is `mixed_heat`, with syntax
+
+<p align="center">
+<code>
+ mixed_heat(Q(x),F(x),&alpha;<sub>1</sub>,&beta;<sub>1</sub>,&alpha;<sub>2</sub>,&beta;<sub>2</sub>,h<sub>1</sub>(tvar),h<sub>2</sub>(tvar),xvar,tvar,L,&kappa;,ord)</code> 
+</p> 
+
+where `ord` can be `inf` or a positive integer. In the first case, the solution is given in the form of a Fourier series;
+in the second, as a series truncated to order `ord`.
+
 **Example 1** Consider the problem
 <p align="left">
- u<sub>t</sub>+&kappa; u<sub>xx</sub>=0, x&isin;[0,L], t>0 <br>
+ u<sub>t</sub>-&kappa; u<sub>xx</sub>=0, x&isin;[0,L], t>0 <br>
  u(x,0)=1-x<sup>3</sup>/4<br>
  u<sub>x</sub>(0,t)=0<br>
  u<sub>x</sub>(1,t)=-u(1,t)<br>
 </p> 
 
-Physically, this corresponds to the heat propagation in a bar where the left end is insulated, and
+Physically, it corresponds to the heat propagation in a bar where the left end is insulated, and
 the right end has convection heat loss.
 
 We solve it with the following commands:
@@ -42,10 +68,29 @@ We solve it with the following commands:
 <code>(%i5)	h2(t):=0$</code><br>
 <code>(%i6)	mixed_heat(Q(x,t),F(x),0,1,1,1,h1(t),h2(t),x,t,1,k,inf);</code><br>
 <code>(%o6)	%lambda[n] are the solutions of %lambda[n]*cos(%lambda[n])-%lambda[n]^2*sin(%lambda[n])=0</code><br>
-<a href="https://www.codecogs.com/eqnedit.php?latex=3&space;\sum_{n=1}^\infty&space;\[\frac{\left(&space;{{\lambda&space;}_n}\,&space;\left(&space;{{\lambda&space;}_{n}^{2}}&plus;2\right)&space;\sin{\left(&space;{{\lambda&space;}_n}\right)&space;}-\left(&space;{{\lambda&space;}_{n}^{2}}-2\right)&space;\cos{\left(&space;{{\lambda&space;}_n}\right)&space;}-2\right)&space;\,&space;{e^{-k\,&space;{{\lambda&space;}_{n}^{2}}&space;t}}&space;\cos{\left(&space;{{\lambda&space;}_n}&space;x\right)&space;}}{{{\lambda&space;}_{n}^{3}}\,&space;\left(&space;\sin{\left(&space;2&space;{{\lambda&space;}_n}\right)&space;}&plus;2&space;{{\lambda&space;}_n}\right)&space;}\]" target="_blank"><img src="https://latex.codecogs.com/svg.latex?3&space;\sum_{n=1}^\infty&space;\[\frac{\left(&space;{{\lambda&space;}_n}\,&space;\left(&space;{{\lambda&space;}_{n}^{2}}&plus;2\right)&space;\sin{\left(&space;{{\lambda&space;}_n}\right)&space;}-\left(&space;{{\lambda&space;}_{n}^{2}}-2\right)&space;\cos{\left(&space;{{\lambda&space;}_n}\right)&space;}-2\right)&space;\,&space;{e^{-k\,&space;{{\lambda&space;}_{n}^{2}}&space;t}}&space;\cos{\left(&space;{{\lambda&space;}_n}&space;x\right)&space;}}{{{\lambda&space;}_{n}^{3}}\,&space;\left(&space;\sin{\left(&space;2&space;{{\lambda&space;}_n}\right)&space;}&plus;2&space;{{\lambda&space;}_n}\right)&space;}\]" title="3 \sum_{n=1}^\infty \[\frac{\left( {{\lambda }_n}\, \left( {{\lambda }_{n}^{2}}+2\right) \sin{\left( {{\lambda }_n}\right) }-\left( {{\lambda }_{n}^{2}}-2\right) \cos{\left( {{\lambda }_n}\right) }-2\right) \, {e^{-k\, {{\lambda }_{n}^{2}} t}} \cos{\left( {{\lambda }_n} x\right) }}{{{\lambda }_{n}^{3}}\, \left( \sin{\left( 2 {{\lambda }_n}\right) }+2 {{\lambda }_n}\right) }\]" /></a>
+![Example 1](img/Example1.png?raw=true) 
 <p align="left"> 
 <code>(%i7)	kill(Q,F,h1,h2)$</code><br>
 </p>
+
+## The wave equation ##
+
+Consider now the general Sturm-Liouville problem for the wave equation:
+
+<p align="left">
+ u<sub>tt</sub>=c<sup>2</sup> u<sub>xx</sub>+T(x,t) with (x,t) &isin; [0,L]x&#x211d;<sup>+</sup><br>
+u(x,0)=f(x) <br>
+ u<sub>t</sub>(x,0)=g(x) <br>
+&alpha;<sub>1</sub>u(0,t) + &beta;<sub>1</sub>u<sub>x</sub>(0,t) = b<sub>1</sub>(t) <br>
+&alpha;<sub>2</sub>u(L,t) + &beta;<sub>2</sub>u<sub>x</sub>(L,t) = b<sub>2</sub>(t)
+</p>
+
+The command in this case is `mixed_wave`, with syntax
+
+<p align="center">
+<code>
+ mixed_wave(T(x,t),f(x),g(x),&alpha;<sub>1</sub>,&beta;<sub>1</sub>,&alpha;<sub>2</sub>,&beta;<sub>2</sub>,b<sub>1</sub>(tvar),b<sub>2</sub>(tvar),xvar,tvar,L,c,ord)</code> 
+</p> 
 
 **Example 2** Consider the following problem for the wave equation in (x,t)&isin;[0,L] x [0,&infin;[:
 <p align="left">
@@ -57,7 +102,7 @@ We solve it with the following commands:
 
 This is Example 4.31 in J. D. Logan's ''Applied Partial Differential Equations'' (3rd. Ed.), Springer Verlag, 2015.
 
-The following Maxima session solves it:
+The following Maxima session solves it (notice we are assuming that `load(pdefourier)` has been already executed!):
 
 <p align="left">
 <code>(%i8)	assume(t>0)$</code><br>
@@ -69,27 +114,42 @@ The following Maxima session solves it:
 <code>(%i14)	bb2(t):=0$</code><br>
 <code>(%i15)	mixed_wave(T(x,t),f(x),g(x),1,0,1,0,bb1(t),bb2(t),x,t,L,c,inf);</code><br>
 <code>(%o15)</code><br>
-  <a href="https://www.codecogs.com/eqnedit.php?latex=\frac{1}{\pi^3&space;c^2}&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{\left(&space;2&space;{{L}^{3}}&space;a\,&space;{{\left(&space;-1\right)&space;}^{n}}&space;\cos{\left(&space;\frac{\ensuremath{\pi}&space;c&space;n&space;t}{L}\right)&space;}-2&space;{{L}^{3}}&space;a\,&space;{{\left(&space;-1\right)&space;}^{n}}\right)&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\frac{1}{\pi^3&space;c^2}&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{\left(&space;2&space;{{L}^{3}}&space;a\,&space;{{\left(&space;-1\right)&space;}^{n}}&space;\cos{\left(&space;\frac{\ensuremath{\pi}&space;c&space;n&space;t}{L}\right)&space;}-2&space;{{L}^{3}}&space;a\,&space;{{\left(&space;-1\right)&space;}^{n}}\right)&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}" title="\frac{1}{\pi^3 c^2} \sum_{n=1}^{\infty }{\left. \frac{\left( 2 {{L}^{3}} a\, {{\left( -1\right) }^{n}} \cos{\left( \frac{\ensuremath{\pi} c n t}{L}\right) }-2 {{L}^{3}} a\, {{\left( -1\right) }^{n}}\right) \sin{\left( \frac{\ensuremath{\pi} n x}{L}\right) }}{{{n}^{3}}}\right.}" /></a>
+![Example 2-1](img/Example2-1.png?raw=true) 
 </p>
 We can simplify the output a little bit:
 <p align="left">
 <code>(%i16)	factor(%);</code><br>
 <code>(%o16)</code><br>
 </p>
-<a href="https://www.codecogs.com/eqnedit.php?latex=\frac{2L^3a}{\pi^3&space;c^2}\sum_{n=1}^{\infty&space;}{\left.&space;\frac{{{\left(&space;-1\right)&space;}^{n}}\,&space;\left(&space;\cos{\left(&space;\frac{\ensuremath{\pi}&space;c&space;n&space;t}{L}\right)&space;}-1\right)&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\frac{2L^3a}{\pi^3&space;c^2}\sum_{n=1}^{\infty&space;}{\left.&space;\frac{{{\left(&space;-1\right)&space;}^{n}}\,&space;\left(&space;\cos{\left(&space;\frac{\ensuremath{\pi}&space;c&space;n&space;t}{L}\right)&space;}-1\right)&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}" title="\frac{2L^3a}{\pi^3 c^2}\sum_{n=1}^{\infty }{\left. \frac{{{\left( -1\right) }^{n}}\, \left( \cos{\left( \frac{\ensuremath{\pi} c n t}{L}\right) }-1\right) \sin{\left( \frac{\ensuremath{\pi} n x}{L}\right) }}{{{n}^{3}}}\right.}" /></a>
+![Example 2-2](img/Example2-2.png?raw=true)
 
-Mathematica&trade; can not solve it, but Maple&trade; does. In case you want to compare the output
+Mathematica&trade; (version 12.0) can not solve it, but Maple&trade; (version 2019) does. In case you want to compare the output
 given here with that of Maple&trade;'s, please notice that
 <p align="left">
 <code>(%i17)	fouriersin_series((a*L^2*x-a*x^3)/6,x,L,inf);</code><br>
 <code>(%o17)</code>
 </p>
-<a href="https://www.codecogs.com/eqnedit.php?latex=\frac{2&space;{{L}^{3}}&space;a\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{{{\left(&space;-1\right)&space;}^{n&plus;1}}&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}}{{{\ensuremath{\pi}&space;}^{3}}}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\frac{2&space;{{L}^{3}}&space;a\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{{{\left(&space;-1\right)&space;}^{n&plus;1}}&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}}{{{\ensuremath{\pi}&space;}^{3}}}" title="\frac{2 {{L}^{3}} a\, \sum_{n=1}^{\infty }{\left. \frac{{{\left( -1\right) }^{n+1}} \sin{\left( \frac{\ensuremath{\pi} n x}{L}\right) }}{{{n}^{3}}}\right.}}{{{\ensuremath{\pi} }^{3}}}" /></a>
+![Example 2-3](img/Example2-3.png?raw=true) 
 <p align="left">
 <code>(%i18)	kill(T,f,g,bb1,bb2)$</code><br>
 </p>
 
- **Example 3** This is a  Neumann problem for the Laplace equation on a wedge defined by 0<&theta;<&pi;/2, 0<r<1:
+## The Laplace equation ##
+
+The 2D Laplace equation &Delta;u=0 can be written either in Cartesian coordinates
+<p align="left">
+ &Delta;u=u<sub>xx</sub>+u<sub>yy</sub>=0 
+</p>
+or in polar ones
+<p align="left">
+ &Delta;u=u<sub>rr</sub>+<sup>1</sup>&frasl;<sub>r</sub>&nbsp;u<sub>r</sub>+<sup>1</sup>&frasl;<sub>r<sup>2</sup></sub>&nbsp;u<sub>&theta;&theta;</sub>=0 
+</p>
+
+These can be used in conjunction with Dirichlet or Neumann conditions, on a variety of domains. Accordingly, `pdefourier`
+offers several commands: `dirichlet_laplace_rectangle`, `neumann_laplace_rectangle`, `dirichlet_laplace_disk`, `neumann_laplace_disk`, `dirichlet_laplace_wedge`, `neumann_laplace_wedge`, `dirichlet_laplace_annulus`, and `neumann_laplace_annulus`. We refer to the [wxm documentation file](doc/Documentation-pdefourier.wxm) for more details
+and examples of each case.
+
+ **Example 3** The following is a  Neumann problem for the Laplace equation on a wedge defined by 0<&theta;<&pi;/2, 0<r<1:
 <p align="left">
  &Delta;u=0 <br>
  u(r,0)=0=u(r,a) <br>
@@ -101,10 +161,9 @@ The solution is readily found:
 <p align="left">
 <code>(%i19)	ur(theta):= if (0<=theta and theta<=%pi/2) then cos(4*theta)$</code><br>
 <code>(%i20)	neumann_laplace_wedge(R,%pi/2,ur(theta),theta,inf);</code><br>
-<code>The sum is over &#x2115;-{2}</code><br>
-<code>(%o20)</code><br>
+<code>(%o20) The sum is over &#x2115;-{2}</code><br>
 </p>
-<a href="https://www.codecogs.com/eqnedit.php?latex=-\frac{R\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{\left(&space;{{\left(&space;-1\right)&space;}^{n}}-1\right)&space;\,&space;{{\left(&space;\frac{r}{R}\right)&space;}^{2&space;n}}&space;\sin{\left(&space;2&space;n&space;\theta\right)&space;}}{{{n}^{2}}-4}\right.}}{\ensuremath{\pi}&space;}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?-\frac{R\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{\left(&space;{{\left(&space;-1\right)&space;}^{n}}-1\right)&space;\,&space;{{\left(&space;\frac{r}{R}\right)&space;}^{2&space;n}}&space;\sin{\left(&space;2&space;n&space;\theta\right)&space;}}{{{n}^{2}}-4}\right.}}{\ensuremath{\pi}&space;}" title="-\frac{R\, \sum_{n=1}^{\infty }{\left. \frac{\left( {{\left( -1\right) }^{n}}-1\right) \, {{\left( \frac{r}{R}\right) }^{2 n}} \sin{\left( 2 n \theta\right) }}{{{n}^{2}}-4}\right.}}{\ensuremath{\pi} }" /></a>
+![Example 3](img/Example3.png?raw=true) 
 
 To get a graphical representation of the solution, we can truncate the resulting series:
 
@@ -123,3 +182,28 @@ To get a graphical representation of the solution, we can truncate the resulting
 <code>(%t23)</code><br>	 
 </p>
 ![Neumann problem for Laplace equation on a wedge](img/Neumann-Laplace.png?raw=true) 
+
+
+## Software used
+
+* [Maxima](http://maxima.sourceforge.net/) - Maxima, a computer algebra system
+* [wxMaxima](https://wxmaxima-developers.github.io/wxmaxima/) - wxMaxima, a graphical front-end for Maxima
+
+
+## Authors
+
+* **Emmanuel Roque Jim&eacute;nez** - *Centro de Investigaci&oacute;n y Estudios Avanzados,
+Instituto Polit&eacute;cnico Nacional, M&eacute;xico* - [emmanuelroque](https://github.com/emmanuelroque)
+* **Jos&eacute; Antonio Vallejo Rodr&iacute;guez** - *Facultad de Ciencias, Universidad Aut&oacute;noma de San Luis
+Potos&iacute;, M&eacute;xico* - [josanvallejo](http://galia.fc.uaslp.mx/~jvallejo)
+
+
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE.md](LICENSE.md) file for details
+
+## Acknowledgments
+
+* Thanks to the Maxima's developers team, for maintaining such a wonderful software 
+* Tanks to the [KeTCindy](https://ctan.org/pkg/ketcindy) team, particularly its main developer Setsuo Takato, for their support
