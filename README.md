@@ -32,7 +32,7 @@ Here, we only give a quick introduction to the main commands for solving typical
 The general Sturm-Liouville problem for the heat equation can be expressed as
 
 <p align="left">
- u<sub>t</sub>(x,t)+&kappa;u<sub>xx</sub>(x,t)=Q(x,t) with (x,t) &isin; [0,L]x&#x211d;<sup>+</sup><br>
+ u<sub>t</sub>(x,t)-&kappa;u<sub>xx</sub>(x,t)=Q(x,t) with (x,t) &isin; [0,L]x&#x211d;<sup>+</sup><br>
 u(x,0)=F(x) <br>
 &alpha;<sub>1</sub>u(0,t) + &beta;<sub>1</sub>u<sub>x</sub>(0,t) = h<sub>1</sub>(t) <br>
 &alpha;<sub>2</sub>u(L,t) + &beta;<sub>2</sub>u<sub>x</sub>(L,t) = h<sub>2</sub>(t)
@@ -50,7 +50,7 @@ in the second, as a series truncated to order `ord`.
 
 **Example 1** Consider the problem
 <p align="left">
- u<sub>t</sub>+&kappa; u<sub>xx</sub>=0, x&isin;[0,L], t>0 <br>
+ u<sub>t</sub>-&kappa; u<sub>xx</sub>=0, x&isin;[0,L], t>0 <br>
  u(x,0)=1-x<sup>3</sup>/4<br>
  u<sub>x</sub>(0,t)=0<br>
  u<sub>x</sub>(1,t)=-u(1,t)<br>
