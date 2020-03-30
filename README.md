@@ -148,8 +148,7 @@ The solution is readily found:
 <p align="left">
 <code>(%i19)	ur(theta):= if (0<=theta and theta<=%pi/2) then cos(4*theta)$</code><br>
 <code>(%i20)	neumann_laplace_wedge(R,%pi/2,ur(theta),theta,inf);</code><br>
-<code>The sum is over &#x2115;-{2}</code><br>
-<code>(%o20)</code><br>
+<code>(%o20) The sum is over &#x2115;-{2}</code><br>
 </p>
 ![Example 3](img/Example3.png?raw=true) 
 
