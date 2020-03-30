@@ -3,14 +3,16 @@
 
 Fourier analysis provides a set of techniques for solving partial differential equations (PDEs) in both bounded and unbounded domains, and various types of initial conditions. In the bounded domain case, the method of separation of variables leads to a well-defined algorithm for developing the solution in a Fourier series, making this problem tractable with a CAS.
 
+### Overview ###
+
 This Maxima package computes Fourier series symbolically for piecewise-smooth functions. Using the method of separation of variables it is able to solve symbolically the one-dimensional heat and wave equations on a domain [0,L], with general boundary conditions of the form:
-<p align="center">
-&alpha;<sub>1</sub>u(0,t) + &beta;<sub>1</sub>u<sub>x</sub>(0,t) = f<sub>1</sub>(t) <br>
-&alpha;<sub>2</sub>u(L,t) + &beta;<sub>2</sub>u<sub>x</sub>(L,t) = f<sub>2</sub>(t)
+<p align="left">
+&alpha;<sub>1</sub>u(0,t) + &beta;<sub>1</sub>u<sub>x</sub>(0,t) = h<sub>1</sub>(t) <br>
+&alpha;<sub>2</sub>u(L,t) + &beta;<sub>2</sub>u<sub>x</sub>(L,t) = h<sub>2</sub>(t)
 </p>
 
 Also, the package can solve the two-dimensional Laplace equation for a variety of domains (rectangles, disks, annuli, wedges) and Dirichlet and Neumann boundary conditions. In the case of a rectangular domain [0,a] x [0,b], the package can solve the Laplace equation with mixed boundary conditions of the form
-<p align="center">
+<p align="left">
 (1-&alpha;)u(x,0) + &alpha;u<sub>y</sub>(x,0) = f<sub>0</sub>(x), 0 &le; x &le; a<br>
 (1-&beta;)u(x,b) + &beta;u<sub>y</sub>(x,b) = f<sub>b</sub>(x), 0 &le; x &le; a<br>
 (1-&gamma;)u(0,y) + &gamma;u<sub>x</sub>(0,y) = g<sub>0</sub>(y), 0 &le; y &le; b<br>
@@ -25,6 +27,27 @@ Of course, in all cases it is possible to truncate a series to make numerical ca
 The [Documentation folder](doc) folder contains a Maxima session (in wxm format) [wxm documentation file](doc/Documentation-pdefourier.wxm) explaining in detail the funtions contained in the package, as well as their syntax.
 Here, we only give a quick introduction to the main commands for solving typical problems.
 
+### The heat equation ###
+
+The general Sturm-Liouville problem for the heat equation can be expressed as
+
+<p align="left">
+ u<sub>t</sub>(x,t)+&kappa;u<sub>xx</sub>(x,t)=Q(x,t) with (x,t) &isin; [0,L]x&#x211d;<sup>+</sup><br>
+u(x,0)=F(x) <br>
+&alpha;<sub>1</sub>u(0,t) + &beta;<sub>1</sub>u<sub>x</sub>(0,t) = h<sub>1</sub>(t) <br>
+&alpha;<sub>2</sub>u(L,t) + &beta;<sub>2</sub>u<sub>x</sub>(L,t) = h<sub>2</sub>(t)
+</p>
+
+This is a problem with mixed initial and boundary conditions. The command we use in this case is `mixed_heat`, with syntax
+
+<p align="center">
+<code>
+ mixed_heat(Q(x),F(x),&alpha;<sub>1</sub>,&beta;<sub>1</sub>,&alpha;<sub>2</sub>,&beta;<sub>2</sub>,h<sub>1</sub>(tvar),h<sub>2</sub>(tvar),xvar,tvar,L,&kappa;,ord)</code> 
+</p> 
+
+where `ord` can be `inf` or a positive integer. In the first case, the solution is given in the form of a Fourier series;
+in the second, as a series truncated to order `ord`.I
+
 **Example 1** Consider the problem
 <p align="left">
  u<sub>t</sub>+&kappa; u<sub>xx</sub>=0, x&isin;[0,L], t>0 <br>
@@ -33,7 +56,7 @@ Here, we only give a quick introduction to the main commands for solving typical
  u<sub>x</sub>(1,t)=-u(1,t)<br>
 </p> 
 
-Physically, this corresponds to the heat propagation in a bar where the left end is insulated, and
+Physically, it corresponds to the heat propagation in a bar where the left end is insulated, and
 the right end has convection heat loss.
 
 We solve it with the following commands:
@@ -49,6 +72,8 @@ We solve it with the following commands:
 <p align="left"> 
 <code>(%i7)	kill(Q,F,h1,h2)$</code><br>
 </p>
+
+### The wave equation ###
 
 **Example 2** Consider the following problem for the wave equation in (x,t)&isin;[0,L] x [0,&infin;[:
 <p align="left">
@@ -91,6 +116,8 @@ given here with that of Maple&trade;'s, please notice that
 <p align="left">
 <code>(%i18)	kill(T,f,g,bb1,bb2)$</code><br>
 </p>
+
+### The Laplace equation ###
 
  **Example 3** This is a  Neumann problem for the Laplace equation on a wedge defined by 0<&theta;<&pi;/2, 0<r<1:
 <p align="left">
