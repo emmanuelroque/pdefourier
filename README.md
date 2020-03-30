@@ -42,7 +42,7 @@ We solve it with the following commands:
 <code>(%i5)	h2(t):=0$</code><br>
 <code>(%i6)	mixed_heat(Q(x,t),F(x),0,1,1,1,h1(t),h2(t),x,t,1,k,inf);</code><br>
 <code>(%o6)	%lambda[n] are the solutions of %lambda[n]*cos(%lambda[n])-%lambda[n]^2*sin(%lambda[n])=0</code><br>
-<a href="https://www.codecogs.com/eqnedit.php?latex=3&space;\sum_{n=1}^\infty&space;\[\frac{\left(&space;{{\lambda&space;}_n}\,&space;\left(&space;{{\lambda&space;}_{n}^{2}}&plus;2\right)&space;\sin{\left(&space;{{\lambda&space;}_n}\right)&space;}-\left(&space;{{\lambda&space;}_{n}^{2}}-2\right)&space;\cos{\left(&space;{{\lambda&space;}_n}\right)&space;}-2\right)&space;\,&space;{e^{-k\,&space;{{\lambda&space;}_{n}^{2}}&space;t}}&space;\cos{\left(&space;{{\lambda&space;}_n}&space;x\right)&space;}}{{{\lambda&space;}_{n}^{3}}\,&space;\left(&space;\sin{\left(&space;2&space;{{\lambda&space;}_n}\right)&space;}&plus;2&space;{{\lambda&space;}_n}\right)&space;}\]" target="_blank"><img src="https://latex.codecogs.com/svg.latex?3&space;\sum_{n=1}^\infty&space;\[\frac{\left(&space;{{\lambda&space;}_n}\,&space;\left(&space;{{\lambda&space;}_{n}^{2}}&plus;2\right)&space;\sin{\left(&space;{{\lambda&space;}_n}\right)&space;}-\left(&space;{{\lambda&space;}_{n}^{2}}-2\right)&space;\cos{\left(&space;{{\lambda&space;}_n}\right)&space;}-2\right)&space;\,&space;{e^{-k\,&space;{{\lambda&space;}_{n}^{2}}&space;t}}&space;\cos{\left(&space;{{\lambda&space;}_n}&space;x\right)&space;}}{{{\lambda&space;}_{n}^{3}}\,&space;\left(&space;\sin{\left(&space;2&space;{{\lambda&space;}_n}\right)&space;}&plus;2&space;{{\lambda&space;}_n}\right)&space;}\]" title="3 \sum_{n=1}^\infty \[\frac{\left( {{\lambda }_n}\, \left( {{\lambda }_{n}^{2}}+2\right) \sin{\left( {{\lambda }_n}\right) }-\left( {{\lambda }_{n}^{2}}-2\right) \cos{\left( {{\lambda }_n}\right) }-2\right) \, {e^{-k\, {{\lambda }_{n}^{2}} t}} \cos{\left( {{\lambda }_n} x\right) }}{{{\lambda }_{n}^{3}}\, \left( \sin{\left( 2 {{\lambda }_n}\right) }+2 {{\lambda }_n}\right) }\]" /></a>
+![Example 1](img/Example1.png?raw=true) 
 <p align="left"> 
 <code>(%i7)	kill(Q,F,h1,h2)$</code><br>
 </p>
@@ -69,22 +69,21 @@ The following Maxima session solves it:
 <code>(%i14)	bb2(t):=0$</code><br>
 <code>(%i15)	mixed_wave(T(x,t),f(x),g(x),1,0,1,0,bb1(t),bb2(t),x,t,L,c,inf);</code><br>
 <code>(%o15)</code><br>
-  <a href="https://www.codecogs.com/eqnedit.php?latex=\frac{1}{\pi^3&space;c^2}&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{\left(&space;2&space;{{L}^{3}}&space;a\,&space;{{\left(&space;-1\right)&space;}^{n}}&space;\cos{\left(&space;\frac{\ensuremath{\pi}&space;c&space;n&space;t}{L}\right)&space;}-2&space;{{L}^{3}}&space;a\,&space;{{\left(&space;-1\right)&space;}^{n}}\right)&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\frac{1}{\pi^3&space;c^2}&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{\left(&space;2&space;{{L}^{3}}&space;a\,&space;{{\left(&space;-1\right)&space;}^{n}}&space;\cos{\left(&space;\frac{\ensuremath{\pi}&space;c&space;n&space;t}{L}\right)&space;}-2&space;{{L}^{3}}&space;a\,&space;{{\left(&space;-1\right)&space;}^{n}}\right)&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}" title="\frac{1}{\pi^3 c^2} \sum_{n=1}^{\infty }{\left. \frac{\left( 2 {{L}^{3}} a\, {{\left( -1\right) }^{n}} \cos{\left( \frac{\ensuremath{\pi} c n t}{L}\right) }-2 {{L}^{3}} a\, {{\left( -1\right) }^{n}}\right) \sin{\left( \frac{\ensuremath{\pi} n x}{L}\right) }}{{{n}^{3}}}\right.}" /></a>
+![Example 2-1](img/Example2-1.png?raw=true) 
 </p>
 We can simplify the output a little bit:
 <p align="left">
 <code>(%i16)	factor(%);</code><br>
 <code>(%o16)</code><br>
 </p>
-<a href="https://www.codecogs.com/eqnedit.php?latex=\frac{2L^3a}{\pi^3&space;c^2}\sum_{n=1}^{\infty&space;}{\left.&space;\frac{{{\left(&space;-1\right)&space;}^{n}}\,&space;\left(&space;\cos{\left(&space;\frac{\ensuremath{\pi}&space;c&space;n&space;t}{L}\right)&space;}-1\right)&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\frac{2L^3a}{\pi^3&space;c^2}\sum_{n=1}^{\infty&space;}{\left.&space;\frac{{{\left(&space;-1\right)&space;}^{n}}\,&space;\left(&space;\cos{\left(&space;\frac{\ensuremath{\pi}&space;c&space;n&space;t}{L}\right)&space;}-1\right)&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}" title="\frac{2L^3a}{\pi^3 c^2}\sum_{n=1}^{\infty }{\left. \frac{{{\left( -1\right) }^{n}}\, \left( \cos{\left( \frac{\ensuremath{\pi} c n t}{L}\right) }-1\right) \sin{\left( \frac{\ensuremath{\pi} n x}{L}\right) }}{{{n}^{3}}}\right.}" /></a>
-
+![Example 2-2](img/Example2-2.png?raw=true) 
 Mathematica&trade; can not solve it, but Maple&trade; does. In case you want to compare the output
 given here with that of Maple&trade;'s, please notice that
 <p align="left">
 <code>(%i17)	fouriersin_series((a*L^2*x-a*x^3)/6,x,L,inf);</code><br>
 <code>(%o17)</code>
 </p>
-<a href="https://www.codecogs.com/eqnedit.php?latex=\frac{2&space;{{L}^{3}}&space;a\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{{{\left(&space;-1\right)&space;}^{n&plus;1}}&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}}{{{\ensuremath{\pi}&space;}^{3}}}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?\frac{2&space;{{L}^{3}}&space;a\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{{{\left(&space;-1\right)&space;}^{n&plus;1}}&space;\sin{\left(&space;\frac{\ensuremath{\pi}&space;n&space;x}{L}\right)&space;}}{{{n}^{3}}}\right.}}{{{\ensuremath{\pi}&space;}^{3}}}" title="\frac{2 {{L}^{3}} a\, \sum_{n=1}^{\infty }{\left. \frac{{{\left( -1\right) }^{n+1}} \sin{\left( \frac{\ensuremath{\pi} n x}{L}\right) }}{{{n}^{3}}}\right.}}{{{\ensuremath{\pi} }^{3}}}" /></a>
+![Example 2-3](img/Example2-3.png?raw=true) 
 <p align="left">
 <code>(%i18)	kill(T,f,g,bb1,bb2)$</code><br>
 </p>
@@ -104,7 +103,7 @@ The solution is readily found:
 <code>The sum is over &#x2115;-{2}</code><br>
 <code>(%o20)</code><br>
 </p>
-<a href="https://www.codecogs.com/eqnedit.php?latex=-\frac{R\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{\left(&space;{{\left(&space;-1\right)&space;}^{n}}-1\right)&space;\,&space;{{\left(&space;\frac{r}{R}\right)&space;}^{2&space;n}}&space;\sin{\left(&space;2&space;n&space;\theta\right)&space;}}{{{n}^{2}}-4}\right.}}{\ensuremath{\pi}&space;}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?-\frac{R\,&space;\sum_{n=1}^{\infty&space;}{\left.&space;\frac{\left(&space;{{\left(&space;-1\right)&space;}^{n}}-1\right)&space;\,&space;{{\left(&space;\frac{r}{R}\right)&space;}^{2&space;n}}&space;\sin{\left(&space;2&space;n&space;\theta\right)&space;}}{{{n}^{2}}-4}\right.}}{\ensuremath{\pi}&space;}" title="-\frac{R\, \sum_{n=1}^{\infty }{\left. \frac{\left( {{\left( -1\right) }^{n}}-1\right) \, {{\left( \frac{r}{R}\right) }^{2 n}} \sin{\left( 2 n \theta\right) }}{{{n}^{2}}-4}\right.}}{\ensuremath{\pi} }" /></a>
+![Example 3](img/Example3.png?raw=true) 
 
 To get a graphical representation of the solution, we can truncate the resulting series:
 
