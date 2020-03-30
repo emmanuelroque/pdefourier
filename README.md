@@ -136,6 +136,19 @@ given here with that of Maple&trade;'s, please notice that
 
 ## The Laplace equation ##
 
+The 2D Laplace equation &Delta;u=0 can be written either in Cartesian coordinates
+<p align="left">
+ &Delta;u=u<sub>xx</sub>+u<sub>yy</sub>=0 
+</p>
+or in polar ones
+<p align="left">
+ &Delta;u=u<sub>rr</sub>+<sup>1</sup>&frasl;<sub>r</sub>&nbsp;u<sub>r</sub>+<sup>1</sup>&frasl;<sub>r<sup>2</sup></sub>&nbsp;u<sub>&theta;&theta;</sub>=0 
+</p>
+
+These can be used in conjunction with Dirichlet or Neumann conditions, on a variety of domains. Accordingly, `pdefourier`
+offers several commands: `dirichlet_laplace_rectangle`, `neumann_laplace_rectangle`, `dirichlet_laplace_disk`, `neumann_laplace_disk`, `dirichlet_laplace_wedge`, `neumann_laplace_wedge`, `dirichlet_laplace_annulus`, and `neumann_laplace_annulus`. We refer to the [wxm documentation file](doc/Documentation-pdefourier.wxm) for more details
+and examples of each case.
+
  **Example 3** The following is a  Neumann problem for the Laplace equation on a wedge defined by 0<&theta;<&pi;/2, 0<r<1:
 <p align="left">
  &Delta;u=0 <br>
