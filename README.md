@@ -169,3 +169,26 @@ To get a graphical representation of the solution, we can truncate the resulting
 <code>(%t23)</code><br>	 
 </p>
 ![Neumann problem for Laplace equation on a wedge](img/Neumann-Laplace.png?raw=true) 
+
+
+## Software used
+
+* [Maxima](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
+* [wxMaxima](https://maven.apache.org/) - Dependency Management
+
+
+## Authors
+
+* **Emmanuel Roque Jim&eacute;nez** - *Initial work* - [emmanuelroque](https://github.com/emmanuelroque
+* **Jos&eacute; Antonio Vallejo Rodr&iacute;guez** - *Initial work* - [josanvallejo](http://galia.fc.uaslp.mx/~jvallejo)
+
+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+## Acknowledgments
+
+* Thanks to the Maxima's developers team, for maintaining such a wonderful software 
+* Tanks to the KeTCindy team for their support
