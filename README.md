@@ -78,7 +78,7 @@ We solve it with the following commands:
 Consider now the general Sturm-Liouville problem for the wave equation:
 
 <p align="left">
- u<sub>tt</sub>=c<sup>2</sup> u<sub>xx</sub>+T(x,t) <br> with (x,t) &isin; [0,L]x&#x211d;<sup>+</sup><br>
+ u<sub>tt</sub>=c<sup>2</sup> u<sub>xx</sub>+T(x,t) with (x,t) &isin; [0,L]x&#x211d;<sup>+</sup><br>
 u(x,0)=f(x) <br>
  u<sub>t</sub>(x,0)=g(x) <br>
 &alpha;<sub>1</sub>u(0,t) + &beta;<sub>1</sub>u<sub>x</sub>(0,t) = b<sub>1</sub>(t) <br>
