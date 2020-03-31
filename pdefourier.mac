@@ -1110,10 +1110,18 @@ if ((is(a1=0) and is(b2=0)) or (is(a2=0) and is(b1=0))) then (
         lamn:(2*n-1)*%pi/(2*p),
         Xn:b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
         intXn:integrate(Xn*Xn,xvar,0,p),
-        gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
-        gnf:genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
-        gng:genfouriercoeff(gaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
+        gnq:syntactic_factor(trigreduce(genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn)),
+        gnf:syntactic_factor(trigreduce(genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn)),
+        gng:syntactic_factor(trigreduce(genfouriercoeff(gaux,a1,b1,a2,b2,xvar,lamn,p)/intXn)),
+        /* The explicit construction of coefficients Tn is with the folowing differential equation
         Tn:factor(radcan(expand(rhs(ic2(ode2('diff(Tn,tvar,2) + cc^2*(lamn)^2*Tn = gnq,Tn,tvar),tvar=0,Tn=gnf,'diff(Tn,tvar)=gng))))),
+        This can be solved by the method of variation of parameters obtaining the following
+         (integrate(Qn(s)*cos(c*%lambda[n]*s),s,0,t)*sin(c*%lambda[n]*t)-
+            integrate(Qn(s)*sin(c*%lambda[n]*s),s,0,t)*cos(c*%lambda[n]*t))/(c*%lambda[n])
+            +(gng*sin(c*%lambda[n]*t))/(c*%lambda[n])+gnf*cos(c*%lambda[n]*t)
+
+            Something went wrong with at, using ratsubst instead in the meantime */
+        Tn:(integrate(ratsubst(s,tvar,gnq)*sin(cc*lamn*(tvar-s)),s,0,tvar)+gng*sin(cc*lamn*tvar))/(cc*lamn)+gnf*cos(cc*lamn*tvar),
         forget(2*n-1>0),
         remove(n,integer),
         saux+sum(Xn*Tn,n,1,NN)
@@ -1132,8 +1140,14 @@ if ((is(a1=0) and is(b2=0)) or (is(a2=0) and is(b1=0))) then (
         gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
         gnf:genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
         gng:genfouriercoeff(gaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
+         /* The explicit construction of coefficients Tn is with the folowing differential equation
         Tn:factor(radcan(expand(rhs(ic2(ode2('diff(Tn,tvar,2) + cc^2*(lamn)^2*Tn = gnq,Tn,tvar),tvar=0,Tn=gnf,'diff(Tn,tvar)=gng))))),
-        saux+sum(Xn*Tn,n,1,NN)
+        This can be solved by the method of variation of parameters obtaining the following
+         (integrate(Qn(s)*cos(c*%lambda[n]*s),s,0,t)*sin(c*%lambda[n]*t)-
+            integrate(Qn(s)*sin(c*%lambda[n]*s),s,0,t)*cos(c*%lambda[n]*t))/(c*%lambda[n])
+            +(gng*sin(c*%lambda[n]*t))/(c*%lambda[n])+gnf*cos(c*%lambda[n]*t) */
+        Tn:(integrate(at(gnq,tvar=s)*sin(cc*lamn*(tvar-s)),s,0,tvar)+gng*sin(cc*lamn*tvar))/(cc*lamn)+gnf*cos(cc*lamn*tvar),
+        saux+syntactic_factor(sum(Xn*Tn,n,1,NN))
         )
     )
 )$
@@ -1392,7 +1406,14 @@ dirichlet_poisson_rectangle(Qexpr,aa,bb,f1expr,f2expr,g1expr,g2expr,var1,var2,NN
     assume(n>0),
     [[bnQ],svQ]:fouriersincoeff(Qexpr,var1,aa),
     eq:'diff(bny,var2,2)-(n*%pi/aa)^2*bny=bnQ,
+    /*For the explicit construction of coefficients u_n
     un:rhs(bc2(ode2(eq,bny,var2),var2=0,bny=0,var2=bb,bny=0)),
+    to avoid potential issues with bc2 we develope the closed-form solution instead
+     (a*%e^(-(%pi*n*y)/a)*(((integrate(%e^((%pi*n*s)/a)*Qn(s),s,0,b)-%e^((%pi*b*n)/a)*integrate(Qn(s),s,0,b))*%e^((2*%pi*n*y)/a))/(%e^((2*%pi      *b*n)/a)-1)+integrate(Qn(s),s,0,y)*%e^((%pi*n*y)/a)-integrate(%e^((%pi*n*s)/a)*Qn(s),s,0,y)-(integrate(%e^((%pi*n*s)/a)*Qn(s),s,0,           b)-%e^((%pi*b*n)/a)*integrate(Qn(s),s,0,b))/(%e^((2*%pi*b*n)/a)-1)))/(2*%pi*n)
+        After many manipulations this can be written as follows
+        */
+    un:(-aa/(%pi*n*sinh(%pi*n*bb/aa)))*(sinh(n*%pi*(bb-var2)/aa)*integrate(at(bnQ,var2=s)*sinh(n*%pi*s/aa),s,0,var2)
+        +sinh(var2/aa)*integrate(at(bnQ,var2=s)*sinh(n*%pi*(bb-s)/aa),s,var2,bb)),
     if emptyp(svQ) then (
         ans:syntactic_factor(fouriersincoeff_expand([[un],[]],var1,aa,NN))+
            dirichlet_laplace_rectangle(aa,bb,f1expr,f2expr,g1expr,g2expr,var1,var2,NN),
@@ -1401,7 +1422,8 @@ dirichlet_poisson_rectangle(Qexpr,aa,bb,f1expr,f2expr,g1expr,g2expr,var1,var2,NN
         return(ans))
     else(
         indxpQ:map(first,svQ),
-        svU:map(lambda([e],[e,rhs(bc2(ode2('diff(bny,var2,2)-(e*%pi/aa)^2*bny=evalsv_scn(bnQ,svQ,indxpQ,e),bny,var2),var2=0,bny=0,var2=bb,bny=0))]),indxpQ),
+        svU:map(lambda([e],[e,(-aa/(%pi*e*sinh(%pi*e*bb/aa)))*(sinh(e*%pi*(bb-var2)/aa)*integrate(at(evalsv_scn(bnQ,svQ,indxpQ,e),var2=s)*sinh(e*%pi*s/aa),s,0,var2)
+        +sinh(var2/aa)*integrate(at(evalsv_scn(bnQ,svQ,indxpQ,e),var2=s)*sinh(e*%pi*(bb-s)/aa),s,var2,bb)) ]) ,indxpQ),
         ans:syntactic_factor(fouriersincoeff_expand([[un],svU],var1,aa,NN))+
                dirichlet_laplace_rectangle(aa,bb,f1expr,f2expr,g1expr,g2expr,var1,var2,NN),
         remove(n,integer),
