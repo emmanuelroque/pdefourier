@@ -1,7 +1,7 @@
 /*
 
 pdefourier Maxima package
-Copyright 2019
+Copyright 2020
 Licensed under GNU GPL v3 https://www.gnu.org/licenses/gpl-3.0.html
 Authors: Jose A. Vallejo
          Emmanuel Roque
@@ -994,7 +994,7 @@ else(
         lamn:(2*n-1)*%pi/(2*p),
         Xn:-b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
        /* intXn:integrate(Xn*Xn,xvar,0,p) */
-        intXn:(4*a1^2*p^2-8*a1*b1*p+4*%pi^2*b1^2*n^2-4*%pi^2*b1^2*n+%pi^2*b1^2)/(8*p),
+        intXn:(4*a1^2*p^2+4*%pi^2*b1^2*n^2-4*%pi^2*b1^2*n+%pi^2*b1^2)/(8*p)-a1*b1
         gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
         gnf:genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
         Tn:exp(-kap*(lamn)^2*tvar)*factor(expand(integrate(exp(kap*(lamn)^2*s)*at(gnq,tvar=s),s,0,tvar)+gnf)),
@@ -1089,7 +1089,7 @@ neumann_wave(Qexpr,fexpr,gexpr,h1expr,h2expr,xvar,tvar,p,cc,NN):=block(
 )$
 
 mixed_wave(Qexpr,fexpr,gexpr,a1,b1,a2,b2,h1expr,h2expr,xvar,tvar,p,cc,NN):=block(
-    [n,dd:a1*a2*p+a1*b2+a2*b1,lamn,Xn,intXn,Tn,s,gnf,gng,gnq,saux,qaux,faux,gaux],
+    [n,dd:a1*a2*p+a1*b2-a2*b1,lamn,Xn,intXn,Tn,s,gnf,gng,gnq,saux,qaux,faux,gaux],
 if ((is(a1=0) and is(b1=0)) or (is(a2=0) and is(b2=0))) then return("Error: the problem is singular. Check boundary conditions."),
 if (is(a1=0) and is(a2=0)) then (
         return(neumann_wave(Qexpr,fexpr,gexpr,h1expr/b1,h2expr/b2,xvar,tvar,p,cc,NN))
@@ -1097,7 +1097,7 @@ if (is(a1=0) and is(a2=0)) then (
 elseif (is(b1=0) and is(b2=0)) then (
         return(dirichlet_wave(Qexpr,fexpr,gexpr,h1expr/a1,h2expr/a2,xvar,tvar,p,cc,NN))
     ) else(
-    saux:(a1*h2expr-a2*h1expr)*xvar/dd+((a2*p+b2)*h1expr+b1*h2expr)/dd,
+    saux:(a1*h2expr-a2*h1expr)*xvar/dd+((a2*p+b2)*h1expr-b1*h2expr)/dd,
     if piecewisep(Qexpr) then qaux:list2pw_expr(pwglobalsuml(pw2list(Qexpr,xvar),-diff(saux,tvar,2)+(h2expr-h1expr)*cc^2/p),xvar)
     else qaux:Qexpr-diff(saux,t,2)+cc^2*(h2expr-h1expr)/p,
     if piecewisep(fexpr) then faux:list2pw_expr(pwglobalsuml(pw2list(fexpr,xvar),-at(saux,tvar=0)),xvar)
@@ -1108,7 +1108,7 @@ if ((is(a1=0) and is(b2=0)) or (is(a2=0) and is(b1=0))) then (
         declare(n,integer),
         assume(2*n-1>0),
         lamn:(2*n-1)*%pi/(2*p),
-        Xn:b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
+        Xn:-b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
         intXn:integrate(Xn*Xn,xvar,0,p),
         gnq:syntactic_factor(trigreduce(genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn)),
         gnf:syntactic_factor(trigreduce(genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn)),
@@ -1129,8 +1129,8 @@ if ((is(a1=0) and is(b2=0)) or (is(a2=0) and is(b1=0))) then (
     else (
         lamn:%lambda[n],
         disp(%lambda[n]," are the solutions of ",ratsimp((a1*a2-b1*b2*(%lambda[n])^2)*sin(%lambda[n]*p)+
-                    (a1*b2+a2*b1)*%lambda[n]*cos(%lambda[n]*p)=0)),
-        Xn:b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
+                    (a1*b2-a2*b1)*%lambda[n]*cos(%lambda[n]*p)=0)),
+        Xn:-b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
         (
             if is(b1=0) then
             intXn:(p+(b2/a2)*(cos(p*lamn))^2)/2
