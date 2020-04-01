@@ -994,7 +994,7 @@ else(
         lamn:(2*n-1)*%pi/(2*p),
         Xn:-b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
        /* intXn:integrate(Xn*Xn,xvar,0,p) */
-        intXn:(4*a1^2*p^2+4*%pi^2*b1^2*n^2-4*%pi^2*b1^2*n+%pi^2*b1^2)/(8*p)-a1*b1
+        intXn:(4*a1^2*p^2+4*%pi^2*b1^2*n^2-4*%pi^2*b1^2*n+%pi^2*b1^2)/(8*p)-a1*b1,
         gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
         gnf:genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
         Tn:exp(-kap*(lamn)^2*tvar)*factor(expand(integrate(exp(kap*(lamn)^2*s)*at(gnq,tvar=s),s,0,tvar)+gnf)),
