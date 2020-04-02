@@ -80,7 +80,7 @@ We solve it with the following commands:
 <code>(%i5)	h2(t):=0$</code><br>
 <code>(%i6)	mixed_heat(Q(x,t),F(x),0,1,1,1,h1(t),h2(t),x,t,1,k,inf);</code><br>
 <code>(%o6)	%lambda[n] are the solutions of %lambda[n]*cos(%lambda[n])-%lambda[n]^2*sin(%lambda[n])=0</code><br>
-![Example 1](img/Example1.png?raw=true)
+![Example 1](img/Example1.png)
 <p align="left">
 <code>(%i7)	kill(Q,F,h1,h2)$</code><br>
 </p>
@@ -126,14 +126,14 @@ The following Maxima session solves it (notice we are assuming that `load(pdefou
 <code>(%i14)	bb2(t):=0$</code><br>
 <code>(%i15)	mixed_wave(T(x,t),f(x),g(x),1,0,1,0,bb1(t),bb2(t),x,t,L,c,inf);</code><br>
 <code>(%o15)</code><br>
-![Example 2-1](img/Example2-1.png?raw=true)
+![Example 2-1](img/Example2-1.png)
 </p>
 We can simplify the output a little bit:
 <p align="left">
 <code>(%i16)	factor(%);</code><br>
 <code>(%o16)</code><br>
 </p>
-![Example 2-2](img/Example2-2.png?raw=true)
+![Example 2-2](img/Example2-2.png)
 
 Mathematica&trade; (version 12.0) can not solve it, but Maple&trade; (version 2019) does. In case you want to compare the output
 given here with that of Maple&trade;'s, please notice that
@@ -141,7 +141,7 @@ given here with that of Maple&trade;'s, please notice that
 <code>(%i17)	fouriersin_series((a*L^2*x-a*x^3)/6,x,L,inf);</code><br>
 <code>(%o17)</code>
 </p>
-![Example 2-3](img/Example2-3.png?raw=true)
+![Example 2-3](img/Example2-3.png)
 <p align="left">
 <code>(%i18)	kill(T,f,g,bb1,bb2)$</code><br>
 </p>
@@ -175,7 +175,7 @@ The solution is readily found:
 <code>(%i20)	neumann_laplace_wedge(R,%pi/2,ur(theta),theta,inf);</code><br>
 <code>(%o20) The sum is over &#x2115;-{2}</code><br>
 </p>
-![Example 3](img/Example3.png?raw=true)
+![Example 3](img/Example3.png)
 
 To get a graphical representation of the solution, we can truncate the resulting series:
 
@@ -193,7 +193,7 @@ To get a graphical representation of the solution, we can truncate the resulting
 <code>	)$</code><br>
 <code>(%t23)</code><br>
 </p>
-![Neumann problem for Laplace equation on a wedge](img/Neumann-Laplace.png?raw=true)
+![Neumann problem for Laplace equation on a wedge](img/Neumann-Laplace.png)
 
 ## Bessel functions ##
 
@@ -224,7 +224,7 @@ formulas such as
  J'<sub>0</sub>(z)=-J<sub>1</sub>(z)<br>
  J'<sub>&nu;</sub>(z)=(J<sub>&nu;-1</sub>(z)-J<sub>&nu;+1</sub>(z))/2
 </p>
-In this case, we have the command `BesselJdiffZeros`. For instance, the following table gives the first 5 
+In this case, we have the command `BesselJdiffZeros`. For instance, the following table gives the first 5
 zeros of J'<sub>m</sub>(x) for 0&le;m&le;10, and is to be compared with the one in
 http://wwwal.kuicr.kyoto-u.ac.jp/www/accelerator/a4/besselroot.htmlx
 <p align="left">
@@ -247,7 +247,7 @@ http://wwwal.kuicr.kyoto-u.ac.jp/www/accelerator/a4/besselroot.htmlx
 
 As an application, consider the 2D wave equation (with c<sup>2</sup>=5):
 <p align="left">
-	u<sub>tt</sub>=5(u<sub>xx</sub>+u<sub>yy</sub>)	
+	u<sub>tt</sub>=5(u<sub>xx</sub>+u<sub>yy</sub>)
 </p>
 on the rectangle (x,y)&isin;[0,4]x[0,2], with intial configuration f(x,y)=x(4-x)y(2-y)/10 and vanishing initial
 distribution of velocities. We solve that problem and create an animation of the solution with the following commands:
@@ -263,6 +263,8 @@ distribution of velocities. We solve that problem and create an animation of the
 ),wxanimate_framerate=8$</code><br>
 <code>(%t28)</code>
 </p>
+
+![Animation of 2D wave equation](img/wave2D.gif)
 
 
 ## Software used
