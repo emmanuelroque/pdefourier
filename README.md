@@ -81,7 +81,7 @@ We solve it with the following commands:
 <code>(%i6)	mixed_heat(Q(x,t),F(x),0,1,1,1,h1(t),h2(t),x,t,1,k,inf);</code><br>
 <code>(%o6)	%lambda[n] are the solutions of %lambda[n]*cos(%lambda[n])-%lambda[n]^2*sin(%lambda[n])=0</code><br>
 </p>
-![Example 1](/img/Example1.png?raw=true)
+<img src="img/Example1.png">
 <p align="left">
 <code>(%i7)	kill(Q,F,h1,h2)$</code><br>
 </p>
@@ -128,13 +128,13 @@ The following Maxima session solves it (notice we are assuming that `load(pdefou
 <code>(%i15)	mixed_wave(T(x,t),f(x),g(x),1,0,1,0,bb1(t),bb2(t),x,t,L,c,inf);</code><br>
 <code>(%o15)</code><br>
 </p>
-![Example 2-1](img/Example2-1.png)
+<img src="img/Example2-1.png">
 We can simplify the output a little bit:
 <p align="left">
 <code>(%i16)	factor(%);</code><br>
 <code>(%o16)</code><br>
 </p>
-![Example 2-2](img/Example2-2.png)
+<img src="img/Example2-2.png">
 
 Mathematica&trade; (version 12.0) can not solve it, but Maple&trade; (version 2019) does. In case you want to compare the output
 given here with that of Maple&trade;'s, please notice that
@@ -142,7 +142,7 @@ given here with that of Maple&trade;'s, please notice that
 <code>(%i17)	fouriersin_series((a*L^2*x-a*x^3)/6,x,L,inf);</code><br>
 <code>(%o17)</code>
 </p>
-![Example 2-3](img/Example2-3.png)
+<img src="img/Example2-3.png">
 <p align="left">
 <code>(%i18)	kill(T,f,g,bb1,bb2)$</code><br>
 </p>
@@ -176,7 +176,8 @@ The solution is readily found:
 <code>(%i20)	neumann_laplace_wedge(R,%pi/2,ur(theta),theta,inf);</code><br>
 <code>(%o20) The sum is over &#x2115;-{2}</code><br>
 </p>
-![Example 3](img/Example3.png)
+<img src="img/Example3.png">
+
 
 To get a graphical representation of the solution, we can truncate the resulting series:
 
@@ -194,7 +195,7 @@ To get a graphical representation of the solution, we can truncate the resulting
 <code>	)$</code><br>
 <code>(%t23)</code><br>
 </p>
-![Neumann problem for Laplace equation on a wedge](img/Neumann-Laplace.png)
+<img src="img/Neumann-Laplace.png">
 
 ## Bessel functions ##
 
