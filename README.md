@@ -80,7 +80,8 @@ We solve it with the following commands:
 <code>(%i5)	h2(t):=0$</code><br>
 <code>(%i6)	mixed_heat(Q(x,t),F(x),0,1,1,1,h1(t),h2(t),x,t,1,k,inf);</code><br>
 <code>(%o6)	%lambda[n] are the solutions of %lambda[n]*cos(%lambda[n])-%lambda[n]^2*sin(%lambda[n])=0</code><br>
-![Example 1](img/Example1.png)
+</p>
+![Example 1](../blob/master/img/Example1.png?raw=true)
 <p align="left">
 <code>(%i7)	kill(Q,F,h1,h2)$</code><br>
 </p>
@@ -126,8 +127,8 @@ The following Maxima session solves it (notice we are assuming that `load(pdefou
 <code>(%i14)	bb2(t):=0$</code><br>
 <code>(%i15)	mixed_wave(T(x,t),f(x),g(x),1,0,1,0,bb1(t),bb2(t),x,t,L,c,inf);</code><br>
 <code>(%o15)</code><br>
-![Example 2-1](img/Example2-1.png)
 </p>
+![Example 2-1](img/Example2-1.png)
 We can simplify the output a little bit:
 <p align="left">
 <code>(%i16)	factor(%);</code><br>
