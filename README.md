@@ -68,7 +68,7 @@ We solve it with the following commands:
 <code>(%i5)	h2(t):=0$</code><br>
 <code>(%i6)	mixed_heat(Q(x,t),F(x),0,1,1,1,h1(t),h2(t),x,t,1,k,inf);</code><br>
 <code>(%o6)	%lambda[n] are the solutions of %lambda[n]*cos(%lambda[n])-%lambda[n]^2*sin(%lambda[n])=0</code><br>
-![Example 1](img/Example1.png?raw=true)
+![Example 1](img/Example1.png?raw=true)<img src="img/Example1.png">
 <p align="left">
 <code>(%i7)	kill(Q,F,h1,h2)$</code><br>
 </p>
