@@ -89,7 +89,7 @@ and its bounded version, for which we compute the Fourier series:
 <code>(%o11)	even</code><br>
 <code>(%i12)	fourier_series(absolute0(x),x,1,inf);</code><br>
 </p>
-<img src="abs_series.png">
+<img src="img/abs_series.png">
 
 ## The heat equation ##
 
