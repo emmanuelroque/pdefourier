@@ -58,7 +58,7 @@ Let us draw the curve to chek the answer:
 <code>(%i4)	plot2d(v(x),[x,-%pi,%pi],[ylabel,"v(x)"]);</code><br>
 <code>(%t4)</code>
 </p>
-[](img/Example-01.png)
+<img src="img/Example-01.png">
 
 The Fourier coefficients are computed with `fouriercoeff`, whose syntax is
 <p align="center">
@@ -77,8 +77,7 @@ This example illustrates the presence of singular values of the coefficients (fo
 <code>(%i7)	wxplot2d([v(x),vseries15],[x,-%pi,%pi],[legend,false]);</code><br>
 <code>(%t7)	</code>	
 </p>
-[](img/Example-02.png)
-
+<img src="img/Example-02.png">
 Here is a well-known example of an unbounded function:
 <p align="left">
 <code>(%i8)	absolute(x):=if (x<=0) then -x elseif (x>0) then x$</code><br>
