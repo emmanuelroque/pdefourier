@@ -87,11 +87,11 @@ Here is a well-known example of an unbounded function:
 </p>
 and its bounded version, for which we compute the Fourier series:
 <p align="left">
-<code>(%i8)	absolute0(x):=if ( x>=-1 and x<=0) then -x elseif (x>0 and x<=1) then x$</code><br>
-<code>(%i9)	paritycheck(absolute0(x),x);</code><br>
-<code>(%o9)	even</code><br>
-<code>(%i10)	fourier_series(absolute0(x),x,1,inf);</code><br>
-<code>(%o10)	(2*sum((((-1)^n-1)*cos(%pi*n*x))/n^2,n,1,inf))/%pi^2+1/2</code>
+<code>(%i10)	absolute0(x):=if ( x>=-1 and x<=0) then -x elseif (x>0 and x<=1) then x$</code><br>
+<code>(%i11)	paritycheck(absolute0(x),x);</code><br>
+<code>(%o11)	even</code><br>
+<code>(%i12)	fourier_series(absolute0(x),x,1,inf);</code><br>
+<code>(%o12)	(2*sum((((-1)^n-1)*cos(%pi*n*x))/n^2,n,1,inf))/%pi^2+1/2</code>
 </p>
 
 
