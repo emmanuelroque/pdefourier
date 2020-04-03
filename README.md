@@ -39,6 +39,62 @@ in a Windows environment typically it will be
 (you may  need  administrator  rights  in  order  to  do  that in either case). The
 package can then be loaded  with the command `load(pdefourier)` inside a Maxima session.
 
+## Fourier coefficients and series ##
+
+The package can deal with piecewise functions, defined in natural notation:
+<p align="left">
+<code>(%i1)	load("pdefourier.mac")$ </code><br>
+<code>(%i2)	v(x):=if (-%pi<=x and x<0) then x^2 elseif (0<=x and x<=%pi) then sin(3*x)$</code>
+</p>
+
+It is possible to detect the parity of such a functions, with `paritycheck`; possible outcomes are `even`, `odd` or `none`:
+<p align="left">
+<code>(%i3)	paritycheck(v(x),x);</code><br>
+<code>(%i2)	none</code>
+</p>
+
+Let us draw the curve to chek the answer:
+<p align="left">
+<code>(%i4)	plot2d(v(x),[x,-%pi,%pi],[ylabel,"v(x)"]);</code><br>
+<code>(%t4)</code>
+</p>
+[](img/Example-01.png)
+
+The Fourier coefficients are computed with `fouriercoeff`, whose syntax is
+<p align="center">
+<code>fouriercoeff(expr,var,p)</code>
+</p>
+Here `p=(b-a)/2` if the whole interval of definition for `expr` is [a,b]. In the present case,
+notice that the function is defined on [-&pi;&pi;]:
+<p align="left">
+<code>(%i5)	fouriercoeff(v(x),x,%pi);</code><br>
+<code>(%o5)	[[(%pi^3+2)/(6*%pi),(((2*%pi-3)*n^2-18*%pi)*(-1)^n-3*n^2)/(%pi*n^2*(n^2-9)),((%pi^2*n^2-2)*(-1)^n+2)/(%pi*n^3)],[[3,-2/9,-(18*%pi^2-27*%pi-8)/(54*%pi)]]]</code>
+</p>
+
+This example illustrates the presence of singular values of the coefficients (for n=3). We can approximate the function by its Fourier series truncated to order 15:
+<p align="left">
+<code>(%i6)	vseries15:fourier_series(v(x),x,%pi,15)$</code><br>
+<code>(%i7)	wxplot2d([v(x),vseries15],[x,-%pi,%pi],[legend,false]);</code><br>
+<code>(%t7)	</code>	
+</p>
+[](img/Example-02.png)
+
+Here is a well-known example of an unbounded function:
+<p align="left">
+<code>(%i8)	absolute(x):=if (x<=0) then -x elseif (x>0) then x$</code><br>
+<code>(%i9)	paritycheck(absolute(x),x);</code><br>
+<code>(%o9)	even</code>
+</p>
+and its bounded version, for which we compute the Fourier series:
+<p align="left">
+<code>(%i8)	absolute0(x):=if ( x>=-1 and x<=0) then -x elseif (x>0 and x<=1) then x$</code><br>
+<code>(%i9)	paritycheck(absolute0(x),x);</code><br>
+<code>(%o9)	even</code><br>
+<code>(%i10)	fourier_series(absolute0(x),x,1,inf);</code><br>
+<code>(%o10)	(2*sum((((-1)^n-1)*cos(%pi*n*x))/n^2,n,1,inf))/%pi^2+1/2</code>
+</p>
+
+
 ## The heat equation ##
 
 The general Sturm-Liouville problem for the heat equation can be expressed as
