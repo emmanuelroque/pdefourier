@@ -6,18 +6,21 @@ Fourier analysis provides a set of techniques for solving partial differential e
 
 This Maxima package computes symbolically the Fourier of piecewise-smooth functions. Using the method of separation of variables it is also able to symbolically solve the one-dimensional heat and wave equations on a domain [0,L], with regular
 Sturm-Liouville conditions, that is, general boundary conditions of the form:
+
 <p align="left">
 &alpha;<sub>1</sub>u(0,t) + &beta;<sub>1</sub>u<sub>x</sub>(0,t) = h<sub>1</sub>(t) <br>
 &alpha;<sub>2</sub>u(L,t) + &beta;<sub>2</sub>u<sub>x</sub>(L,t) = h<sub>2</sub>(t)
 </p>
 
 Moreover, the package can solve the two-dimensional Laplace equation for a variety of domains (rectangles, disks, annuli, wedges) either with Dirichlet or Neumann boundary conditions. In the case of a rectangular domain [0,a] x [0,b], the package can solve the Laplace equation with mixed boundary conditions of the form
+
 <p align="left">
 (1-&alpha;)u(x,0) + &alpha;u<sub>y</sub>(x,0) = f<sub>0</sub>(x), 0 &le; x &le; a<br>
 (1-&beta;)u(x,b) + &beta;u<sub>y</sub>(x,b) = f<sub>b</sub>(x), 0 &le; x &le; a<br>
 (1-&gamma;)u(0,y) + &gamma;u<sub>x</sub>(0,y) = g<sub>0</sub>(y), 0 &le; y &le; b<br>
 (1-&delta;)u(a,y) + &delta;u<sub>x</sub>(a,y) = g<sub>a</sub>(y), 0 &le; y &le; b<br>
 </p>
+
 where &alpha;,&beta;,&gamma;,&delta; &isin; {0,1}.
 
 Of course, in all cases it is possible to truncate a series to make numerical calculations.
@@ -71,6 +74,7 @@ The Fourier coefficients are computed with `fouriercoeff`, whose syntax is
 
 Here `p=(b-a)/2` if the whole interval of definition for `expr` is [a,b]. In the present case,
 notice that the function is defined on [-&pi;&pi;]:
+
 <p align="left">
 <code>(%i5)	fouriercoeff(v(x),x,%pi);</code><br>
 <img src="img/fcoeff_vx.png">
@@ -83,7 +87,9 @@ This example illustrates the presence of singular values of the coefficients (fo
 <code>(%t7)	</code>
 </p>
 <img src="img/Example-02.png">
+
 Here is a well-known example of an unbounded function:
+
 <p align="left">
 <code>(%i8)	absolute(x):=if (x<=0) then -x elseif (x>0) then x$</code><br>
 <code>(%i9)	paritycheck(absolute(x),x);</code><br>
@@ -177,7 +183,6 @@ The command in this case is `mixed_wave`, with syntax
 </p>
 
 This is Example 4.31 in J. D. Logan's ''Applied Partial Differential Equations'' (3rd. Ed.), Springer Verlag, 2015.
-
 The following Maxima session solves it (notice we are assuming that `load(pdefourier)` has been already executed!):
 
 <p align="left">
@@ -192,7 +197,9 @@ The following Maxima session solves it (notice we are assuming that `load(pdefou
 <code>(%o15)</code><br>
 </p>
 <img src="img/Example2-1.png">
+
 We can simplify the output a little bit:
+
 <p align="left">
 <code>(%i16)	factor(%);</code><br>
 <code>(%o16)</code><br>
