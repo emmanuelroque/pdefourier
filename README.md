@@ -68,14 +68,12 @@ Here `p=(b-a)/2` if the whole interval of definition for `expr` is [a,b]. In the
 notice that the function is defined on [-&pi;&pi;]:
 <p align="left">
 <code>(%i5)	fouriercoeff(v(x),x,%pi);</code><br>
-<code>(%o5)	[[(%pi^3+2)/(6*%pi),(((2*%pi-3)*n^2-18*%pi)*(-1)^n-3*n^2)/(%pi*n^2*(n^2-9)),((%pi^2*n^2-2)*(-1)^n+2)/(%pi*n^3)],[[3,-2/9,-(18*%pi^2-27*%pi-8)/(54*%pi)]]]</code>
-</p>
-
+<img src="img/fcoeff_vx.png">
 This example illustrates the presence of singular values of the coefficients (for n=3). We can approximate the function by its Fourier series truncated to order 15:
 <p align="left">
 <code>(%i6)	vseries15:fourier_series(v(x),x,%pi,15)$</code><br>
 <code>(%i7)	wxplot2d([v(x),vseries15],[x,-%pi,%pi],[legend,false]);</code><br>
-<code>(%t7)	</code>	
+<code>(%t7)	</code>
 </p>
 <img src="img/Example-02.png">
 Here is a well-known example of an unbounded function:
@@ -90,9 +88,8 @@ and its bounded version, for which we compute the Fourier series:
 <code>(%i11)	paritycheck(absolute0(x),x);</code><br>
 <code>(%o11)	even</code><br>
 <code>(%i12)	fourier_series(absolute0(x),x,1,inf);</code><br>
-<code>(%o12)	(2*sum((((-1)^n-1)*cos(%pi*n*x))/n^2,n,1,inf))/%pi^2+1/2</code>
 </p>
-
+<img src="abs_series.png">
 
 ## The heat equation ##
 
