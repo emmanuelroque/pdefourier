@@ -42,18 +42,21 @@ package can then be loaded  with the command `load(pdefourier)` inside a Maxima 
 ## Fourier coefficients and series ##
 
 The package can deal with piecewise functions, defined in natural notation:
+
 <p align="left">
 <code>(%i1)	load("pdefourier.mac")$ </code><br>
 <code>(%i2)	v(x):=if (-%pi<=x and x<0) then x^2 elseif (0<=x and x<=%pi) then sin(3*x)$</code>
 </p>
 
 It is possible to detect the parity of such a functions, with `paritycheck`; possible outcomes are `even`, `odd` or `none`:
+
 <p align="left">
 <code>(%i3)	paritycheck(v(x),x);</code><br>
 <code>(%i2)	none</code>
 </p>
 
 Let us draw the curve to chek the answer:
+
 <p align="left">
 <code>(%i4)	plot2d(v(x),[x,-%pi,%pi],[ylabel,"v(x)"]);</code><br>
 <code>(%t4)</code>
@@ -61,9 +64,11 @@ Let us draw the curve to chek the answer:
 <img src="img/Example-01.png">
 
 The Fourier coefficients are computed with `fouriercoeff`, whose syntax is
+
 <p align="center">
 <code>fouriercoeff(expr,var,p)</code>
 </p>
+
 Here `p=(b-a)/2` if the whole interval of definition for `expr` is [a,b]. In the present case,
 notice that the function is defined on [-&pi;&pi;]:
 <p align="left">
@@ -71,6 +76,7 @@ notice that the function is defined on [-&pi;&pi;]:
 <img src="img/fcoeff_vx.png">
 	
 This example illustrates the presence of singular values of the coefficients (for n=3). We can approximate the function by its Fourier series truncated to order 15:
+
 <p align="left">
 <code>(%i6)	vseries15:fourier_series(v(x),x,%pi,15)$</code><br>
 <code>(%i7)	wxplot2d([v(x),vseries15],[x,-%pi,%pi],[legend,false]);</code><br>
@@ -83,7 +89,9 @@ Here is a well-known example of an unbounded function:
 <code>(%i9)	paritycheck(absolute(x),x);</code><br>
 <code>(%o9)	even</code>
 </p>
+	
 and its bounded version, for which we compute the Fourier series:
+
 <p align="left">
 <code>(%i10)	absolute0(x):=if ( x>=-1 and x<=0) then -x elseif (x>0 and x<=1) then x$</code><br>
 <code>(%i11)	paritycheck(absolute0(x),x);</code><br>
@@ -125,6 +133,7 @@ Physically, it corresponds to the heat propagation in a bar where the left end i
 the right end has convection heat loss.
 
 We solve it with the following commands:
+
 <p align="left">
 <code>(%i1)	load(pdefourier)$</code><br>
 <code>(%i2)	Q(x,t):=if (0<=x and x<=1) then 0$</code><br>
@@ -159,6 +168,7 @@ The command in this case is `mixed_wave`, with syntax
 </p>
 
 **Example 2** Consider the following problem for the wave equation in (x,t)&isin;[0,L] x [0,&infin;[:
+
 <p align="left">
  u<sub>tt</sub>=c<sup>2</sup> u<sub>xx</sub>+ax <br>
  u(L,0)=0=u(0,t)<br>
@@ -191,6 +201,7 @@ We can simplify the output a little bit:
 
 Mathematica&trade; (version 12.0) can not solve it, but Maple&trade; (version 2019) does. In case you want to compare the output
 given here with that of Maple&trade;'s, please notice that
+
 <p align="left">
 <code>(%i17)	fouriersin_series((a*L^2*x-a*x^3)/6,x,L,inf);</code><br>
 <code>(%o17)</code>
@@ -203,19 +214,23 @@ given here with that of Maple&trade;'s, please notice that
 ## The Laplace equation ##
 
 The 2D Laplace equation &Delta;u=0 can be written either in Cartesian coordinates
+
 <p align="left">
  &Delta;u=u<sub>xx</sub>+u<sub>yy</sub>=0
 </p>
+
 or in polar ones
+
 <p align="left">
  &Delta;u=u<sub>rr</sub>+<sup>1</sup>&frasl;<sub>r</sub>&nbsp;u<sub>r</sub>+<sup>1</sup>&frasl;<sub>r<sup>2</sup></sub>&nbsp;u<sub>&theta;&theta;</sub>=0
 </p>
 
 These can be used in conjunction with Dirichlet or Neumann conditions, on a variety of domains. Accordingly, `pdefourier`
-offers several commands: `dirichlet_laplace_rectangle`, `neumann_laplace_rectangle`, `dirichlet_laplace_disk`, `neumann_laplace_disk`, `dirichlet_laplace_wedge`, `neumann_laplace_wedge`, `dirichlet_laplace_annulus`, and `neumann_laplace_annulus`. We refer to the [wxm documentation file](doc/Documentation-pdefourier.wxm) for more details
+offers several commands: `dirichlet_laplace_rectangle`, `neumann_laplace_rectangle`, `dirichlet_laplace_disk`, `neumann_laplace_disk`, `dirichlet_laplace_wedge`, `neumann_laplace_wedge`, `dirichlet_laplace_annulus`, and `neumann_laplace_annulus`. We refer to the [pdf documentation file](doc/pdefourier-examples.pdf) for more details
 and examples of each case.
 
  **Example 3** The following is a  Neumann problem for the Laplace equation on a wedge defined by 0<&theta;<&pi;/2, 0<r<1:
+ 
 <p align="left">
  &Delta;u=0 <br>
  u(r,0)=0=u(r,a) <br>
@@ -257,6 +272,7 @@ These zeros are needed for solving some problems, notably the 2D wave equation o
 The package `pdefourier` implements a fast and efficient algorithm for this task, the command
 `BesselJZeros` calculates the zeros of Bessel functions of the first kind J<sub>&nu;</sub>(x)
 when &nu;>-1. Thus, the 5th zero of J<sub>4</sub>(x) is given by
+
 <p align="left">
 <code>(%i24)	BesselJZeros(4,5);</code><br>
 <code>(%o24)	20.82693295696241</code>
@@ -266,22 +282,28 @@ while the first five zeros of J<sub>4</sub>(x) are obtained using the optional a
 <code>(%i25)	BesselJZeros(4,5,all);</code><br>
 <code>(%o25)	[7.5883424345038,11.06470948850117,14.37253667161759,17.61596604980481,20.82693295696241]</code>
 </p>
+
 There is no upper bound in the order (although precision decreases with higher values of &nu;). Many
 algorithms use some variant of MacMahon's formula or the Halley method, so they are not capable of working with
 big values. For instance, neither Mathematica(TM) nor Wolfram Alpha can compute this:
+
 <p align="left">
 <code>(%i26)	BesselJZeros(146225,3);</code><br>
 <code>(%o26)	146456.0070601201</code>
 </p>
+
 The zeros of the derivatives of first-order Bessel functions can be computed with the aid of
 formulas such as
+
 <p align="left">
  J'<sub>0</sub>(z)=-J<sub>1</sub>(z)<br>
  J'<sub>&nu;</sub>(z)=(J<sub>&nu;-1</sub>(z)-J<sub>&nu;+1</sub>(z))/2
 </p>
+
 In this case, we have the command `BesselJdiffZeros`. For instance, the following table gives the first 5
 zeros of J'<sub>m</sub>(x) for 0&le;m&le;10, and is to be compared with the one in
 http://wwwal.kuicr.kyoto-u.ac.jp/www/accelerator/a4/besselroot.htmlx
+
 <p align="left">
 <code>(%i27)	apply(matrix,makelist(BesselJdiffZeros(j,5,all),j,0,10));</code><br>
 <code>(%o27)</code><br>
@@ -301,11 +323,14 @@ http://wwwal.kuicr.kyoto-u.ac.jp/www/accelerator/a4/besselroot.htmlx
 </p>
 
 As an application, consider the 2D wave equation (with c<sup>2</sup>=5):
+
 <p align="left">
 	u<sub>tt</sub>=5(u<sub>xx</sub>+u<sub>yy</sub>)
 </p>
+
 on the rectangle (x,y)&isin;[0,4]x[0,2], with intial configuration f(x,y)=x(4-x)y(2-y)/10 and vanishing initial
 distribution of velocities. We solve that problem and create an animation of the solution with the following commands:
+
 <p align="left">
 <code>(%i28)	f(x,y):=x*(4-x)*y*(2-y)/10$</code><br>
 <code>(%i29)	g(x,y):=0$</code><br>
