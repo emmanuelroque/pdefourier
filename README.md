@@ -69,6 +69,7 @@ notice that the function is defined on [-&pi;&pi;]:
 <p align="left">
 <code>(%i5)	fouriercoeff(v(x),x,%pi);</code><br>
 <img src="img/fcoeff_vx.png">
+	
 This example illustrates the presence of singular values of the coefficients (for n=3). We can approximate the function by its Fourier series truncated to order 15:
 <p align="left">
 <code>(%i6)	vseries15:fourier_series(v(x),x,%pi,15)$</code><br>
