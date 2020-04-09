@@ -12,18 +12,6 @@ load(draw)$
 load(piecewise)$
 load(syntactic_factor)$
 
-piecewisep(expr):=if atom(expr) then false else is(inpart(expr,0)="if")$
-paritycheck(expr,var):=block(
-    if piecewisep(expr) then return(parityL(pw2list(expr,var),var))
-    elseif listp(expr) then return(parityL(expr,var))
-    else (
-    if evenfunp(expr,var) then return('even)
-    elseif oddfunp(expr,var) then return('odd)
-    else return('none)
-    )
-)$
-
-
 /* sum2list(expr)
 Auxiliary function
 Input: An expression

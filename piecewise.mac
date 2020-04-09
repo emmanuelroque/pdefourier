@@ -20,6 +20,8 @@ defrule(geq,xx>=constn,constn<=xx)$
 defrule(lss,constn>xx,xx<constn)$
 defrule(grtr,xx>constn,constn<xx)$
 
+piecewisep(expr):=if atom(expr) then false else is(inpart(expr,0)="if")$
+
 /* pw2list(expr,var)
 Input: piecewise defined function written in one of the following ways
 
@@ -230,6 +232,17 @@ parityL(L,var):=block(
     else return(parityb(L,var))
 
 )$
+
+paritycheck(expr,var):=block(
+    if piecewisep(expr) then return(parityL(pw2list(expr,var),var))
+    elseif listp(expr) then return(parityL(expr,var))
+    else (
+    if evenfunp(expr,var) then return('even)
+    elseif oddfunp(expr,var) then return('odd)
+    else return('none)
+    )
+)$
+
 boundedp(L):=block(
     [ll],
     ll:length(L),
