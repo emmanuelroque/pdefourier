@@ -2,7 +2,19 @@
 
 Fourier analysis provides a set of techniques for solving partial differential equations (PDEs) in both bounded and unbounded domains, and various types of initial conditions. In the bounded domain case, the method of separation of variables leads to a well-defined algorithm for developing the solution in a Fourier series, making this problem tractable with a CAS.
 
-## Overview ##
+
+##### Table of Contents  
+[Overview](#overview)         
+[Installation](#installation)            
+[Fourier coefficients and series](#foucoeff)                
+[Frequency spectrum](#frequency)            
+[The heat equation](#heat)           
+[The wave equation](#wave)         
+[The Laplace equation](#laplace)        
+[Bessel functions](#bessel)         
+
+
+## <a name="overview">Overview<a/> ##
 
 This Maxima package computes symbolically the Fourier of piecewise-smooth functions. Using the method of separation of variables it is also able to symbolically solve the one-dimensional heat and wave equations on a domain [0,L], with regular
 Sturm-Liouville conditions, that is, general boundary conditions of the form:
@@ -31,7 +43,8 @@ The [Documentation folder](doc) folder contains a [pdf file](doc/pdefourier-exam
 of the implementation and a description of many of the functions contained in the package, as well as their syntax. Also, there is a [Maxima session](doc/Documentation-pdefourier.wxm) (in wxm format) with lots of examples, graphics, animations and tips for use.
 Here, we only give a quick introduction to the main commands used for solving typical problems.
 
-## Installation ##
+
+## <a name="installation">Installation<a/> ##
 
 The package can be installed by putting a copy of the files `pdefourier.mac`, `syntactic_factor.mac`, and `piecewise.mac`
 inside a folder contained in the
@@ -42,7 +55,8 @@ in a Windows environment typically it will be
 (you may  need  administrator  rights  in  order  to  do  that in either case). The
 package can then be loaded  with the command `load(pdefourier)` inside a Maxima session.
 
-## Fourier coefficients and series ##
+
+## <a name="foucoeff">Fourier coefficients and series<a/> ##
 
 The package can deal with piecewise functions, defined in natural notation:
 
@@ -106,7 +120,8 @@ and its bounded version, for which we compute the Fourier series:
 </p>
 <img src="img/abs_series.png">
 
-## Frequency spectrum ##
+
+## <a name="frequency">FRequency spectrum<a/> ##
 
 Frequency analysis is very useful in Engineering applications (but also in Physics). This technique
 requires that the Fourier series be first re-expressed in the following form: by using the identity
@@ -229,7 +244,7 @@ as the following animation shows (this too requires the wxMaxima frontend):
 
 
 
-## The heat equation ##
+## <a name="heat">The heat equation<a/> ##
 
 The general Sturm-Liouville problem for the heat equation can be expressed as
 
@@ -277,7 +292,8 @@ We solve it with the following commands:
 <code>(%i7)	kill(Q,F,h1,h2)$</code><br>
 </p>
 
-## The wave equation ##
+
+## <a name="wave">The wave equation<a/> ##
 
 Consider now the general Sturm-Liouville problem for the wave equation:
 
@@ -341,7 +357,8 @@ given here with that of Maple&trade;'s, please notice that
 <code>(%i18)	kill(T,f,g,bb1,bb2)$</code><br>
 </p>
 
-## The Laplace equation ##
+
+## <a name="laplace">The Laplace equation<a/> ##
 
 The 2D Laplace equation &Delta;u=0 can be written either in Cartesian coordinates
 
@@ -395,7 +412,8 @@ To get a graphical representation of the solution, we can truncate the resulting
 </p>
 <img src="img/Neumann-Laplace.png">
 
-## Bessel functions ##
+
+## <a name="bessel">Bessel functions<a/> ##
 
 Maxima has built-in functions for computing values of the Bessel functions, but not of their zeros.
 These zeros are needed for solving some problems, notably the 2D wave equation on bounded domains.
