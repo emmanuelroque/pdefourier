@@ -2,16 +2,16 @@
 
 Fourier analysis provides a set of techniques for solving partial differential equations (PDEs) in both bounded and unbounded domains, and various types of initial conditions. In the bounded domain case, the method of separation of variables leads to a well-defined algorithm for developing the solution in a Fourier series, making this problem tractable with a CAS.
 
-##### Table of Contents  
-[Overview](#overview)  
+##### Table of Contents
+[Overview](#overview)
 [Installation](#installation)
-[Fourier coefficients and series](#foucoeff)  
+[Fourier coefficients and series](#foucoeff)
 [Frequency spectrum](#frequency)
 [The heat equation](#heat)
 [The wave equation](#wave)
 [The Laplace equation](#laplace)
 [Bessel functions](#bessel)
-   
+
 <a name="overview"/>
 ## Overview
 <a name="installation"/>
@@ -105,7 +105,7 @@ notice that the function is defined on [-&pi;&pi;]:
 <p align="left">
 <code>(%i5)	fouriercoeff(v(x),x,%pi);</code><br>
 <img src="img/fcoeff_vx.png">
-	
+
 This example illustrates the presence of singular values of the coefficients (for n=3). We can approximate the function by its Fourier series truncated to order 15:
 
 <p align="left">
@@ -122,7 +122,7 @@ Here is a well-known example of an unbounded function:
 <code>(%i9)	paritycheck(absolute(x),x);</code><br>
 <code>(%o9)	even</code>
 </p>
-	
+
 and its bounded version, for which we compute the Fourier series:
 
 <p align="left">
@@ -132,7 +132,7 @@ and its bounded version, for which we compute the Fourier series:
 <code>(%i12)	fourier_series(absolute0(x),x,1,inf);</code><br>
 </p>
 <img src="img/abs_series.png">
-	
+
 ## Frequency spectrum ##
 
 Frequency analysis is very useful in Engineering applications (but also in Physics). This technique
@@ -151,8 +151,8 @@ u=atan(b/a), we can rewrite the terms summed in the series as the so-called harm
 
 In the theory of sound, the first harmonic (corresponding to n=1) is called the fundamental
 harmonic. The remaining ones are called overtones. The coefficients c<sub>n</sub> are the harmonic
-amplitudes, and the absolute value |c<sub>n</sub>| is a measure of the relative importance of the nth 
-harmonic in a given signal (sound). 
+amplitudes, and the absolute value |c<sub>n</sub>| is a measure of the relative importance of the nth
+harmonic in a given signal (sound).
 The frequency analysis is done in `pdefourier` with the aid of the function
 `fourier_freq`. The function `fourier_harm` returns a list with the first n harmonics of a given function,
 with the syntax
@@ -175,7 +175,9 @@ Here is the example of the square pulse with compact support on [-2,2]:
 <img src="img/Example-harm00.png">
 <p align="left">
 <code>(%i4)	fourier_harm(square0(x),x,2,5);</code><br>
-<code>(%o4)	[(2*cos((%pi*x)/2))/%pi,0,-(2*cos((3*%pi*x)/2))/(3*%pi),0,(2*cos((5*%pi*x)/2))/(5*%pi)]</code><br>	
+</p>
+<img src="img/fourier_harm_square00.png">
+<p>
 <code>(%i5)	fourier_freq_list(square0(x),x,2,5);</code><br>
 <code>(%o5)	[[1.0,0.6366197723675814],[2.0,0.0],[3.0,0.2122065907891938],[4.0,0.0],[5.0,0.1273239544735163]]</code><br>
 </p>
@@ -187,7 +189,7 @@ command  `wxfourier_freq`:
 
 <p align="left">
 <code>(%i6)	wxfourier_freq(square0(x),x,2,10);</code><br>
-<code>(%t6)	</code>	
+<code>(%t6)	</code>
 </p>
 <img src="img/Example-harm01.png">
 
@@ -195,17 +197,17 @@ For very discontinous functions, the amplitude of harmonics does not decrease th
 (or does not decrease at all). Consider the example of the following function:
 
 <p align="left">
-<code>(%i7)	f0(x):=if (x>=-4 and x<-3 ) then 0 elseif (-3<=x and x<=-2) then 1 elseif (-2<x and x<-1) then 0 
+<code>(%i7)	f0(x):=if (x>=-4 and x<-3 ) then 0 elseif (-3<=x and x<=-2) then 1 elseif (-2<x and x<-1) then 0
 elseif (-1<=x and x<=1) then -x elseif (1<=x and x<=2) then 0
 elseif (2<x and x<3) then -1 elseif (x>=3 and x<=4) then 0$</code>
 </p>
-	
+
 Here is its graphical representation, along with its Fourier approximation to order 15:
 
 <p align="left">
 <code>(%i8)	seriesf0:fourier_series(f0(x),x,4,15)$</code><br>
 <code>(%i9)	plot2d([f0(x),seriesf0],[x,-4,4],[legend,false]);</code><br>
-<code>(%t9)	</code>	
+<code>(%t9)	</code>
 </p>
 <img src="img/Example-harm02.png">
 
@@ -213,7 +215,7 @@ And its frequency spectrum:
 
 <p align="left">
 <code>(%i10)	wxfourier_freq(f0(x),x,4,10);</code><br>
-<code>(%t10)	</code>	
+<code>(%t10)	</code>
 </p>
 <img src="img/Example-harm03.png">
 
@@ -223,32 +225,32 @@ as the following animation shows (this too requires the wxMaxima frontend):
 <p align="left">
 <code>(%i11)	ramp(x):=if (-5<=x and x<=-1) then (x+3)/2 else 0$</code><br>
 <code>(%i12)	define(ramp_series(x,n),fourier_series(ramp(x),x,2,n))$</code>
-<code><pre>(%i13)	with_slider_draw(k,makelist(j,j,1,10),    
-    dimensions=[900,450],    
-    xrange=[-5.25,10.25],    
-    yrange_secondary=[-1.45,1.45],    
-    axis_top=false,     
-    axis_left=false,     
-    xtics=none,     
-    user_preamble=["set y2label tc rgb 'blue'","set ylabel tc rgb 'red'","set grid y2"],    
-    yaxis=false,    
-    ytics=none,    
-    yaxis_secondary=true,    
-    ylabel_secondary="|c_n|",    
-    ytics_secondary=auto,    
-      color=blue,    
-      label(["w(n)=nw_0",5,-0.25]),    
-      points_joined=impulses,line_width=4,color=blue,    
-      points(fourier_freq_list(ramp(x),x,2,k)),    
-      line_width=1,    
-      color=violet,    
-      key="ramp(x)",key_pos=top_left,    
-      explicit(ramp(x),x,-5,-1),    
-      line_width=2,    
-      key="Fourier series",    
-      color=red,explicit(ramp_series(x,k),x,-5,-1)     
+<code><pre>(%i13)	with_slider_draw(k,makelist(j,j,1,10),
+    dimensions=[900,450],
+    xrange=[-5.25,10.25],
+    yrange_secondary=[-1.45,1.45],
+    axis_top=false,
+    axis_left=false,
+    xtics=none,
+    user_preamble=["set y2label tc rgb 'blue'","set ylabel tc rgb 'red'","set grid y2"],
+    yaxis=false,
+    ytics=none,
+    yaxis_secondary=true,
+    ylabel_secondary="|c_n|",
+    ytics_secondary=auto,
+      color=blue,
+      label(["w(n)=nw_0",5,-0.25]),
+      points_joined=impulses,line_width=4,color=blue,
+      points(fourier_freq_list(ramp(x),x,2,k)),
+      line_width=1,
+      color=violet,
+      key="ramp(x)",key_pos=top_left,
+      explicit(ramp(x),x,-5,-1),
+      line_width=2,
+      key="Fourier series",
+      color=red,explicit(ramp_series(x,k),x,-5,-1)
     ),wxplot_size=[900,450];</pre></code><br/>
-<code>(%t13)	</code>	
+<code>(%t13)	</code>
 </p>
 <img src="img/FreqSpec.gif">
 
@@ -385,7 +387,7 @@ offers several commands: `dirichlet_laplace_rectangle`, `neumann_laplace_rectang
 and examples of each case.
 
  **Example 3** The following is a  Neumann problem for the Laplace equation on a wedge defined by 0<&theta;<&pi;/2, 0<r<1:
- 
+
 <p align="left">
  &Delta;u=0 <br>
  u(r,0)=0=u(r,a) <br>
