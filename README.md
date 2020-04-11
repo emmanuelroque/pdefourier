@@ -237,8 +237,8 @@ as the following animation shows (this too requires the wxMaxima frontend):
       line_width=2,
       key="Fourier series",
       color=red,explicit(ramp_series(x,k),x,-5,-1)
-    ),wxplot_size=[900,450];</pre></code><br/>
-<code>(%t13)	</code>
+    ),wxplot_size=[900,450];</pre></code>
+<code>(%t13)</code>
 </p>
 <img src="img/FreqSpec.gif">
 
