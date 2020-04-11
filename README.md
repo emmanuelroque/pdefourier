@@ -3,14 +3,14 @@
 Fourier analysis provides a set of techniques for solving partial differential equations (PDEs) in both bounded and unbounded domains, and various types of initial conditions. In the bounded domain case, the method of separation of variables leads to a well-defined algorithm for developing the solution in a Fourier series, making this problem tractable with a CAS.
 
 ##### Table of Contents  
-[Overview](#overview)  
-[Installation](#installation)
-[Fourier coefficients and series](#foucoeff)  
-[Frequency spectrum](#frequency)
-[The heat equation](#heat)
-[The wave equation](#wave)
-[The Laplace equation](#laplace)
-[Bessel functions](#bessel)
+[Overview](##overview)  
+[Installation](##installation)
+[Fourier coefficients and series](##foucoeff)  
+[Frequency spectrum](##frequency)
+[The heat equation](##heat)
+[The wave equation](##wave)
+[The Laplace equation](##laplace)
+[Bessel functions](##bessel)
    
 <a name="overview"/>
 ## Overview
