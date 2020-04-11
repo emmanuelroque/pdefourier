@@ -1,4 +1,4 @@
-# pdefourier: A package for solving partial differential equations in Maxima CAS #
+# pdefourier: A package for doing Fourier analysis and solving partial differential equations in Maxima CAS #
 
 Fourier analysis provides a set of techniques for solving partial differential equations (PDEs) in both bounded and unbounded domains, and various types of initial conditions. In the bounded domain case, the method of separation of variables leads to a well-defined algorithm for developing the solution in a Fourier series, making this problem tractable with a CAS.
 
