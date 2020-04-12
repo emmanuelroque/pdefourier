@@ -204,7 +204,7 @@ elseif (-1<=x and x<=1) then -x elseif (1<=x and x<=2) then 0
 elseif (2<x and x<3) then -1 elseif (x>=3 and x<=4) then 0$</code>
 </p>
 
-Here is its graphical representation, along with its Fourier approximation to order 15:
+Here is its graphical representation, along with its Fourier approximation up to order 15:
 
 <p align="left">
 <code>(%i8)	seriesf0:fourier_series(f0(x),x,4,15)$</code><br>
