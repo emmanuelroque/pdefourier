@@ -86,7 +86,21 @@ The Fourier coefficients are computed with `fouriercoeff`, whose syntax is
 <code>fouriercoeff(expr,var,p)</code>
 </p>
 
-Here `p=(b-a)/2` if the whole interval of definition for `expr` is [a,b]. In the present case,
+Here `p=(b-a)/2` if the whole interval of definition for `expr` is [a,b]. The output has the form
+
+<p align="center">
+	<code>[[a<sub>0</sub>,a<sub>n</sub>,b<sub>n</sub>],svlist]</code>
+</p>
+
+where `svlist` is a sublist containing the singular values of the coefficients, again with the format
+
+
+<p align="center">
+	<code>[m,a<sub>m</sub>,b<sub>m</sub>]</code>
+</p>
+
+
+In the example we are considering,
 notice that the function is defined on [-&pi;&pi;]:
 
 <p align="left">
@@ -121,17 +135,17 @@ and its bounded version, for which we compute the Fourier series:
 <img src="img/abs_series.png">
 
 
-## <a name="frequency">FRequency spectrum<a/> ##
+## <a name="frequency">Frequency spectrum<a/> ##
 
 Frequency analysis is very useful in Engineering applications (but also in Physics). This technique
-requires that the Fourier series be first re-expressed in the following form: by using the identity
+requires that the Fourier series be first re-expressed using the identity
 
 <p align="left">
                                         a cos(w)+b sin(w)=r cos(w-u)
 </p>
 
 where the modulus and the phase shift are given, respectively, by r=sqrt(a<sup>2</sup>+b<sup>2</sup>) and
-u=atan(b/a), we can rewrite the terms summed in the series as the so-called harmonics:
+u=atan(b/a). Then, we can rewrite the terms of the series in the so-called harmonic form:
 
 <p align="left">
 	c<sub>n</sub> cos(nwx-u<sub>n</sub>)
@@ -199,7 +213,7 @@ Here is its graphical representation, along with its Fourier approximation to or
 </p>
 <img src="img/Example-harm02.png">
 
-And its frequency spectrum:
+And its frequency spectrum (contoaining the forst 10 harmonics):
 
 <p align="left">
 <code>(%i10)	wxfourier_freq(f0(x),x,4,10);</code><br>
