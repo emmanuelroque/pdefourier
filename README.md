@@ -213,7 +213,7 @@ Here is its graphical representation, along with its Fourier approximation to or
 </p>
 <img src="img/Example-harm02.png">
 
-And its frequency spectrum (contoaining the forst 10 harmonics):
+And its frequency spectrum (contoaining the first 10 harmonics):
 
 <p align="left">
 <code>(%i10)	wxfourier_freq(f0(x),x,4,10);</code><br>
