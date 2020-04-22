@@ -380,13 +380,13 @@ pwdiffl(Lf,bar,n):=block(
 map(lambda([uuu],[first(uuu),diff(second(uuu),bar,n)]),Lf)
 )$
 
-/*pwintegrate(L,var)
+/*pwintegratel(L,var)
 
 Integrate the list form of a piecewise defined function
 
 */
 
-pwintegrate(Llist,var):=block(
+pwintegratel(Llist,var):=block(
     [ll],
     ll:length(Llist),
     return(sum(integrate(Llist[i][2],var,Llist[i][1][1],Llist[i][1][2]),i,1,ll))

@@ -141,13 +141,13 @@ foucoeffpw(L,var):=block(
     answ:[a0,an,simplify_sum(bn)],
     return(ratsimp(answ)))
     elseif is(parityL(L,var)=even) then (
-    a0:(1/(2*lm))*pwintegrate(L,var),
+    a0:(1/(2*lm))*pwintegratel(L,var),
     an:sum(heuristic_an(Laux[i][2],var,lm,Laux[i][1][1],Laux[i][1][2]),i,1,llaux),
     bn:0,
     answ:[simplify_sum(a0),simplify_sum(an),bn],
     return(ratsimp(answ)))
     else(
-    a0:(1/(2*lm))*pwintegrate(L,var),
+    a0:(1/(2*lm))*pwintegratel(L,var),
     an:sum(heuristic_an(Laux[i][2],var,lm,Laux[i][1][1],Laux[i][1][2]),i,1,llaux),
     bn:sum(heuristic_bn(Laux[i][2],var,lm,Laux[i][1][1],Laux[i][1][2]),i,1,llaux),
     answ:[a0,an,bn],
@@ -407,7 +407,7 @@ fouriercoscoeffpw(Llist,var):=block(
     lm:(Llist[ll][1][2]-Llist[1][1][1]), /*No need to divide by 2*/
     Laux:secsum2bl(Llist),
     llaux:length(Laux),
-    a0:(1/(lm))*pwintegrate(Llist,var),
+    a0:(1/(lm))*pwintegratel(Llist,var),
     an:2*sum(heuristic_an(Laux[i][2],var,lm,Laux[i][1][1],Laux[i][1][2]),i,1,llaux),
     answ:[a0,an],
     answ:map(simplify_sum,answ),
@@ -961,7 +961,7 @@ neumann_heat(Qexpr,Fexpr,h1expr,h2expr,xvar,tvar,kap,p,NN):=block(
   )$
 
 genfouriercoeff(fexpr,a1,b1,a2,b2,xvar,lambda,p):=block(
-    if piecewisep(fexpr) then return(pwintegrate(pwglobalproductl(pw2list(fexpr,xvar),b1*lambda*cos(lambda*xvar)+a1*sin(lambda*xvar)),xvar))
+    if piecewisep(fexpr) then return(pwintegratel(pwglobalproductl(pw2list(fexpr,xvar),b1*lambda*cos(lambda*xvar)+a1*sin(lambda*xvar)),xvar))
     else
     return(integrate(fexpr*(b1*lambda*cos(lambda*xvar)+a1*sin(lambda*xvar)),xvar,0,p))
 )$
@@ -1013,9 +1013,9 @@ else(
         /*intXn:b1^2*lamn^2*(p-b1*(cos(lamn*p))^2/a1)/(2*(sin(lamn*p))^2),display(intXn),*/
         intXn:(a1^2/(2*cos(lamn*p)^2))*(p-b1*cos(lamn*p)^2/a1),
         /*We won't use genfouriercoeff in this case as we are using another expression for Xn*/
-        if piecewisep(fexpr) then gnf:pwintegrate(pwglobalproductl(pw2list(faux,xvar),Xn),xvar)/intXn
+        if piecewisep(fexpr) then gnf:pwintegratel(pwglobalproductl(pw2list(faux,xvar),Xn),xvar)/intXn
             else gnf:integrate(faux*Xn,xvar,0,p)/intXn,
-        if piecewisep(fexpr) then gnq:pwintegrate(pwglobalproductl(pw2list(qaux,xvar),Xn),xvar)/intXn
+        if piecewisep(fexpr) then gnq:pwintegratel(pwglobalproductl(pw2list(qaux,xvar),Xn),xvar)/intXn
             else gnq:integrate(qaux*Xn,xvar,0,p)/intXn,
         /*Let's try to help the simplifier and be consistent*/
         gnf:ratsubst(b1*lamn*cos(lamn*p),a1*sin(lamn*p),gnf),
@@ -1344,7 +1344,7 @@ mixedcoscoeff(fexpr,var,p):=block(
     declare(n,integer),
     lamn:(2*n-1)*%pi/(2*p),
     if piecewisep(fexpr) then (
-        ans:trigreduce(2*pwintegrate(pwglobalproductl(pw2list(fexpr,var),cos(lamn*var)),var)/p),
+        ans:trigreduce(2*pwintegratel(pwglobalproductl(pw2list(fexpr,var),cos(lamn*var)),var)/p),
         remove(n,integer),
         return(ratsimp(ans))
         )
@@ -1360,7 +1360,7 @@ mixedsincoeff(fexpr,var,p):=block(
     declare(n,integer),
     lamn:(2*n-1)*%pi/(2*p),
     if piecewisep(fexpr) then (
-        ans:trigreduce(2*pwintegrate(pwglobalproductl(pw2list(fexpr,var),sin(lamn*var)),var)/p),
+        ans:trigreduce(2*pwintegratel(pwglobalproductl(pw2list(fexpr,var),sin(lamn*var)),var)/p),
         remove(n,integer),
         return(ratsimp(ans))
         )
