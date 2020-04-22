@@ -105,7 +105,7 @@ mixed_heat(0,100*x*(1-x),0,1,0,1,0,0,x,t,1,1/4,inf);
 50/3-((200*sum((((-1)^n+1)*%e^(-(%pi^2*n^2*t)/4)*cos(%pi*n*x))/n^2,n,1,inf))/%pi^2)$
 
 mixed_heat(0,f(x),1,1,1,1,0,0,x,t,L,k,inf);
-2*sum((%e^(-(%pi^2*k*n^2*t)/L^2)*(sin((%pi*n*x)/L)+(%pi*n*cos((%pi*n*x)/L))/L)*integrate(f(x)*(L*sin((%pi*n*x)/L)+%pi*n*cos((%pi*n*x)/L)),x,0,L))/(%pi^2*n^2+L^2),n,1,inf)$
+2*sum((%e^(-(%pi^2*k*n^2*t)/L^2)*(sin((%pi*n*x)/L)-(%pi*n*cos((%pi*n*x)/L))/L)*integrate(f(x)*(L*sin((%pi*n*x)/L)+%pi*n*cos((%pi*n*x)/L)),x,0,L))/(%pi^2*n^2+L^2),n,1,inf)$
 
 mixed_heat(0,f(x),1,0,0,1,A,B,x,t,L,k,inf);
 (2*sum(%e^(-(%pi^2*k*(2*n-1)^2*t)/(4*L^2))*sin((%pi*(2*n-1)*x)/(2*L))*integrate((f(x)-B*x-A)*sin((%pi*(2*n-1)*x)/(2*L)),x,0,L),n,1,inf))/L+B*x+A$
