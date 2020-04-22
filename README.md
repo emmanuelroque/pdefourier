@@ -2,7 +2,19 @@
 
 Fourier analysis provides a set of techniques for solving partial differential equations (PDEs) in both bounded and unbounded domains, and various types of initial conditions. In the bounded domain case, the method of separation of variables leads to a well-defined algorithm for developing the solution in a Fourier series, making this problem tractable with a CAS.
 
-## Overview ##
+
+##### Table of Contents  
+[Overview](#overview)         
+[Installation](#installation)            
+[Fourier coefficients and series](#foucoeff)                
+[Frequency spectrum](#frequency)            
+[The heat equation](#heat)           
+[The wave equation](#wave)         
+[The Laplace equation](#laplace)        
+[Bessel functions](#bessel)         
+
+
+## <a name="overview">Overview<a/> ##
 
 This Maxima package computes symbolically the Fourier of piecewise-smooth functions. Using the method of separation of variables it is also able to symbolically solve the one-dimensional heat and wave equations on a domain [0,L], with regular
 Sturm-Liouville conditions, that is, general boundary conditions of the form:
@@ -31,7 +43,8 @@ The [Documentation folder](doc) folder contains a [pdf file](doc/pdefourier-exam
 of the implementation and a description of many of the functions contained in the package, as well as their syntax. Also, there is a [Maxima session](doc/Documentation-pdefourier.wxm) (in wxm format) with lots of examples, graphics, animations and tips for use.
 Here, we only give a quick introduction to the main commands used for solving typical problems.
 
-## Installation ##
+
+## <a name="installation">Installation<a/> ##
 
 The package can be installed by putting a copy of the files `pdefourier.mac`, `syntactic_factor.mac`, and `piecewise.mac`
 inside a folder contained in the
@@ -42,7 +55,8 @@ in a Windows environment typically it will be
 (you may  need  administrator  rights  in  order  to  do  that in either case). The
 package can then be loaded  with the command `load(pdefourier)` inside a Maxima session.
 
-## Fourier coefficients and series ##
+
+## <a name="foucoeff">Fourier coefficients and series<a/> ##
 
 The package can deal with piecewise functions, defined in natural notation:
 
@@ -72,7 +86,21 @@ The Fourier coefficients are computed with `fouriercoeff`, whose syntax is
 <code>fouriercoeff(expr,var,p)</code>
 </p>
 
-Here `p=(b-a)/2` if the whole interval of definition for `expr` is [a,b]. In the present case,
+Here `p=(b-a)/2` if the whole interval of definition for `expr` is [a,b]. The output has the form
+
+<p align="center">
+	<code>[[a<sub>0</sub>,a<sub>n</sub>,b<sub>n</sub>],svlist]</code>
+</p>
+
+where `svlist` is a sublist containing the singular values of the coefficients, again with the format
+
+
+<p align="center">
+	<code>[m,a<sub>m</sub>,b<sub>m</sub>]</code>
+</p>
+
+
+In the example we are considering,
 notice that the function is defined on [-&pi;&pi;]:
 
 <p align="left">
@@ -106,17 +134,18 @@ and its bounded version, for which we compute the Fourier series:
 </p>
 <img src="img/abs_series.png">
 
-## Frequency spectrum ##
+
+## <a name="frequency">Frequency spectrum<a/> ##
 
 Frequency analysis is very useful in Engineering applications (but also in Physics). This technique
-requires that the Fourier series be first re-expressed in the following form: by using the identity
+requires that the Fourier series be first re-expressed using the identity
 
 <p align="left">
                                         a cos(w)+b sin(w)=r cos(w-u)
 </p>
 
 where the modulus and the phase shift are given, respectively, by r=sqrt(a<sup>2</sup>+b<sup>2</sup>) and
-u=atan(b/a), we can rewrite the terms summed in the series as the so-called harmonics:
+u=atan(b/a). Then, we can rewrite the terms of the series in the so-called harmonic form:
 
 <p align="left">
 	c<sub>n</sub> cos(nwx-u<sub>n</sub>)
@@ -167,7 +196,7 @@ command  `wxfourier_freq`:
 <img src="img/Example-harm01.png">
 
 For very discontinous functions, the amplitude of harmonics does not decrease that fast
-(or does not decrease at all). Consider the example of the following function:
+(or does not decrease at all). Consider the following function as an example:
 
 <p align="left">
 <code>(%i7)	f0(x):=if (x>=-4 and x<-3 ) then 0 elseif (-3<=x and x<=-2) then 1 elseif (-2<x and x<-1) then 0
@@ -175,7 +204,7 @@ elseif (-1<=x and x<=1) then -x elseif (1<=x and x<=2) then 0
 elseif (2<x and x<3) then -1 elseif (x>=3 and x<=4) then 0$</code>
 </p>
 
-Here is its graphical representation, along with its Fourier approximation to order 15:
+Here is its graphical representation, along with its Fourier approximation up to order 15:
 
 <p align="left">
 <code>(%i8)	seriesf0:fourier_series(f0(x),x,4,15)$</code><br>
@@ -184,7 +213,7 @@ Here is its graphical representation, along with its Fourier approximation to or
 </p>
 <img src="img/Example-harm02.png">
 
-And its frequency spectrum:
+And its frequency spectrum (containing the first 10 harmonics):
 
 <p align="left">
 <code>(%i10)	wxfourier_freq(f0(x),x,4,10);</code><br>
@@ -222,14 +251,14 @@ as the following animation shows (this too requires the wxMaxima frontend):
       line_width=2,
       key="Fourier series",
       color=red,explicit(ramp_series(x,k),x,-5,-1)
-    ),wxplot_size=[900,450];</pre></code><br/>
-<code>(%t13)	</code>
+    ),wxplot_size=[900,450];</pre></code>
+<code>(%t13)</code>
 </p>
 <img src="img/FreqSpec.gif">
 
 
 
-## The heat equation ##
+## <a name="heat">The heat equation<a/> ##
 
 The general Sturm-Liouville problem for the heat equation can be expressed as
 
@@ -277,7 +306,8 @@ We solve it with the following commands:
 <code>(%i7)	kill(Q,F,h1,h2)$</code><br>
 </p>
 
-## The wave equation ##
+
+## <a name="wave">The wave equation<a/> ##
 
 Consider now the general Sturm-Liouville problem for the wave equation:
 
@@ -341,7 +371,8 @@ given here with that of Maple&trade;'s, please notice that
 <code>(%i18)	kill(T,f,g,bb1,bb2)$</code><br>
 </p>
 
-## The Laplace equation ##
+
+## <a name="laplace">The Laplace equation<a/> ##
 
 The 2D Laplace equation &Delta;u=0 can be written either in Cartesian coordinates
 
@@ -395,7 +426,8 @@ To get a graphical representation of the solution, we can truncate the resulting
 </p>
 <img src="img/Neumann-Laplace.png">
 
-## Bessel functions ##
+
+## <a name="bessel">Bessel functions<a/> ##
 
 Maxima has built-in functions for computing values of the Bessel functions, but not of their zeros.
 These zeros are needed for solving some problems, notably the 2D wave equation on bounded domains.
