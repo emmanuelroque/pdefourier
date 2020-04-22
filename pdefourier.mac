@@ -9,8 +9,8 @@ Authors: Jose A. Vallejo
 
 load(simplify_sum)$
 load(draw)$
-load(piecewise)$
-load(syntactic_factor)$
+load("piecewise.mac")$
+load("syntactic_factor.mac")$
 
 /* sum2list(expr)
 Auxiliary function
@@ -1036,7 +1036,7 @@ else(
         gnq:genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
         gnf:genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn,
         Tn:exp(-kap*(lamn)^2*tvar)*syntactic_factor(integrate(exp(kap*(lamn)^2*s)*at(gnq,tvar=s),s,0,tvar)+gnf),
-        saux+sum(Xn*Tn,n,1,NN)
+        syntactic_divthru(saux)+sum(Xn*Tn,n,1,NN)
         )
     )
 )$
@@ -1098,9 +1098,9 @@ if ((is(a1=0) and is(b2=0)) or (is(a2=0) and is(b1=0))) then (
         lamn:(2*n-1)*%pi/(2*p),
         Xn:-b1*lamn*cos(lamn*xvar)+a1*sin(lamn*xvar),
         intXn:integrate(Xn*Xn,xvar,0,p),
-        gnq:syntactic_factor(trigreduce(genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn)),
-        gnf:syntactic_factor(trigreduce(genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn)),
-        gng:syntactic_factor(trigreduce(genfouriercoeff(gaux,a1,b1,a2,b2,xvar,lamn,p)/intXn)),
+        gnq:syntactic_factor(factor(trigreduce(genfouriercoeff(qaux,a1,b1,a2,b2,xvar,lamn,p)/intXn))),
+        gnf:syntactic_factor(factor(trigreduce(genfouriercoeff(faux,a1,b1,a2,b2,xvar,lamn,p)/intXn))),
+        gng:syntactic_factor(factor(trigreduce(genfouriercoeff(gaux,a1,b1,a2,b2,xvar,lamn,p)/intXn))),
         /* The explicit construction of coefficients Tn is with the folowing differential equation
         Tn:factor(radcan(expand(rhs(ic2(ode2('diff(Tn,tvar,2) + cc^2*(lamn)^2*Tn = gnq,Tn,tvar),tvar=0,Tn=gnf,'diff(Tn,tvar)=gng))))),
         This can be solved by the method of variation of parameters obtaining the following
