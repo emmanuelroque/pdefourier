@@ -254,8 +254,10 @@ fouriercoeff(expr,var,p):=block(
     return(syntactic_factor(ratsimp([ans,coeffsv])))
 )$
 
+listdifference(a,b):=listify(setdifference(setify(a),setify(b)))$
+
 fouriercoeff_expand(fcoeff,var,p,NN):=block(
-    [ans,a0,an,bn,sv,indx_sv,svsum,sl_indx,laux],
+    [ans,a0,an,bn,sv,indx_sv,svsum,nsvsum,laux,max_sv,sl_indx],
     [[a0,an,bn],sv]:fcoeff,
     an:ev(an),
     bn:ev(bn),
@@ -263,20 +265,22 @@ fouriercoeff_expand(fcoeff,var,p,NN):=block(
         ans:a0+sum(an*cos(n*%pi*var/p)+bn*sin(n*%pi*var/p),n,1,NN),
         return(ans)
     ) else(
-        indx_sv:makelist(sv[i][1],i,1,length(sv)),
+        indx_sv:map(first,sv),
+        max_sv:lmax(indx_sv),
         if is(NN=inf) then(
-        svsum:sum(sv[i][2]*cos(sv[i][1]*%pi*var/p)+sv[i][3]*sin(sv[i][1]*%pi*var/p),i,1,length(sv)),
-        ans:a0+svsum+sum(an*cos(n*%pi*var/p)+bn*sin(n*%pi*var/p),n,1,inf),
-        if is(an=0) and is(bn=0) then return(ans),
-        print("The sum is over \\N -",setify(indx_sv)),
-        return(ans)
+            svsum:lsum(second(e)*cos(first(e)*%pi*var/p)+third(e)*sin(first(e)*%pi*var/p),e,sv),
+            laux:listdifference(makelist(i,i,1,max_sv-1),indx_sv),
+            nsvsum:lsum(at(an*cos(n*%pi*var/p)+bn*sin(n*%pi*var/p),n=i),i,laux),
+            ans:a0+svsum+nsvsum+sum(an*cos(n*%pi*var/p)+bn*sin(n*%pi*var/p),n,max_sv+1,inf),
+            return(ans)
         )
         else(
-        sl_indx:sublist_indices(indx_sv,lambda([e],is(e<=NN))),
-        svsum:lsum(sv[i][2]*cos(sv[i][1]*%pi*var/p)+sv[i][3]*sin(sv[i][1]*%pi*var/p),i,sl_indx),
-        laux:listify(setdifference(setify(makelist(i,i,1,NN)),setify(indx_sv))),
-        ans:a0+svsum+lsum(at(an*cos(n*%pi*var/p)+bn*sin(n*%pi*var/p),n=i),i,laux),
-        return(ans)
+            sl_indx:sublist_indices(indx_sv,lambda([e],is(e<=NN))),
+            svsum:lsum(sv[i][2]*cos(sv[i][1]*%pi*var/p)+sv[i][3]*sin(sv[i][1]*%pi*var/p),i,sl_indx),
+            laux:listdifference(makelist(i,i,1,NN),indx_sv),
+            nsvsum:lsum(at(an*cos(n*%pi*var/p)+bn*sin(n*%pi*var/p),n=i),i,laux),
+            ans:a0+svsum+nsvsum,
+            return(ans)
         )
     )
 )$
@@ -490,52 +494,56 @@ fouriercoscoeff(expr,var,p):=block(
 )$
 
 fouriersincoeff_expand(sincoeff,var,p,NN):=block(
-    [ans,bn,sv,indx_sv,svsum,sl_indx,laux],
+    [ans,bn,sv,svsum,nsvsum,laux,max_sv,sl_indx],
     [[bn],sv]:sincoeff,
     bn:ev(bn),
     if emptyp(sv) then(
         ans:sum(bn*sin(n*%pi*var/p),n,1,NN),
         return(ans)
     ) else(
-        indx_sv:makelist(sv[i][1],i,1,length(sv)),
+        indx_sv:map(first,sv),
         if is(NN=inf) then(
-         svsum:sum(sv[i][2]*sin(sv[i][1]*%pi*var/p),i,1,length(sv)),
-        ans:svsum+sum(bn*sin(n*%pi*var/p),n,1,inf),
-        if is(bn=0) then return(ans),
-        print("The sum is over \\N-",setify(indx_sv)),
-        return(ans)
+            max_sv:lmax(indx_sv),
+            svsum:lsum(second(e)*sin(first(e)*%pi*var/p),e,sv),
+            laux:listdifference(makelist(i,i,1,max_sv-1),indx_sv),
+            nsvsum:lsum(at(bn*sin(n*%pi*var/p),n=i),i,laux),
+            ans:svsum+nsvsum+sum(bn*sin(n*%pi*var/p),n,max_sv+1,inf),
+            return(ans)
         )
         else(
-        sl_indx:sublist_indices(indx_sv,lambda([e],is(e<=NN))),
-        svsum:lsum(sv[i][2]*sin(sv[i][1]*%pi*var/p),i,sl_indx),
-        laux:listify(setdifference(setify(makelist(i,i,1,NN)),setify(indx_sv))),
-        ans:svsum+lsum(at(bn*sin(n*%pi*var/p),n=i),i,laux),
-        return(ans)
+            sl_indx:sublist_indices(indx_sv,lambda([e],is(e<=NN))),
+            svsum:lsum(sv[i][2]*sin(sv[i][1]*%pi*var/p),i,sl_indx),
+            laux:listdifference(makelist(i,i,1,NN),indx_sv),
+            nsvsum:lsum(at(bn*sin(n*%pi*var/p),n=i),i,laux),
+            ans:svsum+nsvsum,
+            return(ans)
         )
     )
 )$
 
-fouriercoscoeff_expand(coscoeff,var,p,NN):=block(
-    [ans,a0,an,sv,indx_sv,svsum,sl_indx,laux],
+fouriercoscoeff_expand(coscoeff,var,p,nn):=block(
+    [ans,a0,an,sv,indx_sv,svsum,sl_indx,laux,max_sv,nsvsum],
     [[a0,an],sv]:coscoeff,
     an:ev(an),
     if emptyp(sv) then(
-        ans:a0+sum(an*cos(n*%pi*var/p),n,1,NN),
+        ans:a0+sum(an*cos(n*%pi*var/p),n,1,nn),
         return(ans)
     ) else(
-        indx_sv:makelist(sv[i][1],i,1,length(sv)),
-        if is(NN=inf) then(
-        svsum:sum(sv[i][2]*cos(sv[i][1]*%pi*var/p),i,1,length(sv)),
-        ans:a0+svsum+sum(an*cos(n*%pi*var/p),n,1,inf),
-        if is(an=0) then return(ans),
-        print("The sum is over \\N -",setify(indx_sv)),
-        return(ans)
+        indx_sv:map(first,sv),
+        max_sv:lmax(indx_sv),
+        if is(nn=inf) then(
+            svsum:lsum(second(e)*cos(first(e)*%pi*var/p),e,sv),
+            laux:listdifference(makelist(i,i,1,max_sv-1),indx_sv),
+            nsvsum:lsum(at(an*cos(n*%pi*var/p),n=i),i,laux),
+            ans:a0+svsum+sum(an*cos(n*%pi*var/p),n,max_sv+1,inf),
+            return(ans)
         )
         else(
-        sl_indx:sublist_indices(indx_sv,lambda([e],is(e<=NN))),
+        sl_indx:sublist_indices(indx_sv,lambda([e],is(e<=nn))),
         svsum:lsum(sv[i][2]*cos(sv[i][1]*%pi*var/p),i,sl_indx),
-        laux:listify(setdifference(setify(makelist(i,i,1,NN)),setify(indx_sv))),
-        ans:a0+svsum+lsum(at(an*cos(n*%pi*var/p),n=i),i,laux),
+        laux:listdifference(makelist(i,i,1,nn),indx_sv),
+        nsvsum:lsum(at(an*cos(n*%pi*var/p),n=i),i,laux),
+        ans:a0+svsum+nsvsum,
         return(ans)
         )
     )
@@ -567,36 +575,37 @@ real2complex_fcoeff(fcoeff):=block(
 cfouriercoeff(expr,var,p):=real2complex_fcoeff(fouriercoeff(expr,var,p))$
 
 cfouriercoeff_expand(cfcoeff,var,p,NN):=block(
-        [ans,c0,cn,csv,indx_csv,csvsumpos,csvsumneg,sl_indx,laux],
+        [ans,c0,cn,csv,indx_csv,csvsum,ncsvsum,sl_indx,laux,max_sv],
     [[c0,cn],csv]:cfcoeff,
     an:ev(cn),
     if emptyp(csv) then(
         if is(NN=inf) then(
-        ans:c0+sum(at(cn*exp(%i*n*%pi*var/p),n=n),n,minf,inf),
-        print("The sum is over \\N-\{0\}"),
+        ans:c0+sum(at(cn*exp(%i*n*%pi*var/p),n=n),n,minf,-1)+sum(at(cn*exp(%i*n*%pi*var/p),n=n),n,1,inf),
         return(ans)
         ) else(
-        ans:c0+sum(at(conjugate(cn)*exp(%i*-n*%pi*var/p),n=n),n,1,NN)
+        ans:c0+sum(at(conjugate(cn)*exp(-%i*n*%pi*var/p),n=n),n,1,NN)
         +sum(at(cn*exp(%i*n*%pi*var/p),n=n),n,1,NN),
         return(ratsimp(demoivre(ans))))
     ) else(
         indx_csv:map(first,csv),
+        max_sv:lmax(indx_csv),
         if is(NN=inf) then(
-        csvsumpos:sum(csv[i][2]*exp(%i*csv[i][1]*%pi*var/p),i,1,length(csv)),
-        csvsumneg:sum(conjugate(csv[i][2])*exp(-%i*csv[i][1]*%pi*var/p),i,1,length(csv)),
-        ans:c0+csvsumpos+csvsumneg+sum(at(cn*exp(%i*n*%pi*var/p),n=n),n,minf,inf),
-        if is(cn=0) then return(ans),
-        print("The sum is over \\N -",setify(append(indx_csv,[0]))),
-        return(ans)
+            laux:listdifference(makelist(i,i,1,max_sv-1),indx_csv),
+            csvsum:lsum(second(e)*exp(%i*first(e)*%pi*var/p)
+                                +conjugate(second(e))*exp(-%i*first(e)*%pi*var/p),e,csv),
+            ncsvsum:lsum(at(cn*exp(%i*n*%pi*var/p)+conjugate(cn)*exp(-%i*n*%pi*var/p),n=i),i,laux),
+            ans:c0+csvsum+ncsvsum+sum(at(cn*exp(%i*n*%pi*var/p),n=n),n,max_sv+1,inf)
+            +sum(at(cn*exp(%i*n*%pi*var/p),n=n),n,minf,-max_sv-1),
+            return(ans)
         )
         else(
-        sl_indx:sublist_indices(indx_csv,lambda([e],is(e<=NN))),
-        csvsumpos:lsum(csv[i][2]*exp(%i*csv[i][1]*%pi*var/p),i,sl_indx),
-        csvsumneg:lsum(conjugate(csv[i][2])*exp(-%i*csv[i][1]*%pi*var/p),i,sl_indx),
-        laux:listify(setdifference(setify(makelist(i,i,1,NN)),setify(indx_csv))),
-        ans:c0+csvsumpos+csvsumneg+lsum(at(cn*exp(%i*n*%pi*var/p),n=i),i,laux)
-        +lsum(at(conjugate(cn)*exp(-%i*n*%pi*var/p),n=i),i,laux),
-        return(ratsimp(demoivre(ans)))
+            sl_indx:sublist_indices(indx_csv,lambda([e],is(e<=NN))),
+            csvsum:lsum(csv[i][2]*exp(%i*csv[i][1]*%pi*var/p)
+                            +conjugate(csv[i][2])*exp(-%i*csv[i][1]*%pi*var/p),i,sl_indx),
+            laux:listdifference(makelist(i,i,1,NN),indx_csv),
+            ncsvsum:lsum(at(cn*exp(%i*n*%pi*var/p)+conjugate(cn)*exp(-%i*n*%pi*var/p),n=i),i,laux),
+            ans:c0+csvsum+ncsvsum,
+            return((ans))
         )
     )
 )$
