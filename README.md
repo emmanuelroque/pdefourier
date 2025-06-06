@@ -501,7 +501,7 @@ distribution of velocities. We solve that problem and create an animation of the
 <code>(%i32)	wxanimate_draw3d(s,makelist(i/10,i,0,32),
    surface_hide=true,zrange=[-1.5,1.5],
    color=orange,
-   parametric_surface(x,y,subst(t=s,expre),x,0,4,y,0,2)
+   parametric_surface(x,y,subst(t=s,expr),x,0,4,y,0,2)
 ),wxanimate_framerate=8$</code><br>
 <code>(%t28)</code>
 </p>
