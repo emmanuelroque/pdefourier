@@ -11,6 +11,7 @@ load(simplify_sum)$
 load(draw)$
 load("piecewise.mac")$
 load("syntactic_factor.mac")$
+load(lapack)$
 
 /* sum2list(expr)
 Auxiliary function
@@ -810,17 +811,23 @@ neumann_laplace_rectangle(aa,bb,f1expr,f2expr,g1expr,g2expr,var1,var2,NN):=block
 )$
 
 /*Beggining of 2D Wave equation*/
+nrange(z):=block([i:1,j:1],
+while is(i<z) do (i:i*10,j:j+1),
+[j,j+1]
+)$
 
-BesselJZeros(m,k,[u]):=block([a,alpha,A,answ],local(a,alpha,A),
+BesselJZeros(m,k,[u]):=block(
+    [adt:if (0<abs(m) and abs(m)<1) then second(nrange(ceiling(1/m)))*20 else second(nrange(m))*20,a,alpha,A,answ],
+    local(a,alpha,A),
 if is(not(m>-1)) then return("The order m must be m>-1"),
 if (is(not(integerp(k))) or is(not(k > 0))) then return("k must be an integer k>0"),
 a[i]:=m+2*i,
-alpha[i,j]:=if is(equal(i,j)) then 2/((a[i]-1)*(a[i]+1))
-            elseif is(equal(j,i-1)) then 1/((a[i]-1)*sqrt((a[i]-2)*a[i]))
-            elseif is(equal(j,i+1)) then 1/((a[i+1]-1)*sqrt((a[i+1]-2)*a[i+1]))
-            else 0,
-A:genmatrix(alpha,ceiling(k/0.64)+10,ceiling(k/0.64)+10),
-answ:2/sqrt(first(eigens_by_jacobi(A,floatfield))),
+alpha[i,j]:=if is(equal(i,j)) then 2.0/((a[i]-1)*(a[i]+1))
+            elseif is(equal(j,i-1)) then 1.0/((a[i]-1)*sqrt((a[i]-2)*a[i]))
+            elseif is(equal(j,i+1)) then 1.0/((a[i+1]-1)*sqrt((a[i+1]-2)*a[i+1]))
+            else 0.0,
+A:genmatrix(alpha,ceiling(k/0.64)+adt,ceiling(k/0.64)+adt),
+answ:2/sqrt(first(dgeev(A))),
 if (is(not(equal(length(u),0))) and is(equal(first(u),all))) then
     firstn(sort(answ),k)
 elseif (is(not(equal(length(u),0))) and is(not(equal(first(u),all)))) then
